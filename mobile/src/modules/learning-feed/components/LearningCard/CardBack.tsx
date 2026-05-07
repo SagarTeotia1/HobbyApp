@@ -15,7 +15,7 @@ export function CardBack({ card }: CardBackProps) {
       <Typography variant="caption" muted>DEEPER DIVE</Typography>
       <View style={styles.divider} />
       <Typography variant="body">
-        {card.simplifiedContent ?? card.content}
+        {card.simplifiedContent ?? card.backContent}
       </Typography>
       <View style={styles.tagsRow}>
         {card.tags.map((t) => (

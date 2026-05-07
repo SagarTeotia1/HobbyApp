@@ -15,7 +15,7 @@ export function LearningCardView({ card }: LearningCardProps) {
         {card.type.toUpperCase()}
       </Typography>
       <Typography variant="heading">{card.title}</Typography>
-      <Typography variant="body">{card.content}</Typography>
+      <Typography variant="body">{card.frontContent}</Typography>
     </View>
   );
 }

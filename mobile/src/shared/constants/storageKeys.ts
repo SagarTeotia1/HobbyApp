@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   CURRENT_HOBBY_ID: 'user.currentHobby',
   USER_PREFERENCES: 'user.preferences',
   AI_CHAT_HISTORY: 'ai.chatHistory',
+  THEME: 'app.theme',
 } as const;
 
-export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
+export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

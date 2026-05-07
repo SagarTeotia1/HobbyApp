@@ -3,6 +3,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainNavigator } from './MainNavigator';
+import { ROUTES } from './routes';
 import { useUserStore } from '../store/rootStore';
 import { colors } from '../theme';
 import type { RootStackParamList } from './types';
@@ -33,9 +34,9 @@ export function RootNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isOnboarded ? (
-          <Stack.Screen name="Main" component={MainNavigator} />
+          <Stack.Screen name={ROUTES.MAIN} component={MainNavigator} />
         ) : (
-          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
+          <Stack.Screen name={ROUTES.ONBOARDING} component={OnboardingNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

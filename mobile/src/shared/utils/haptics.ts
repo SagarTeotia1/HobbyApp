@@ -1,20 +1,28 @@
-import { Vibration, Platform } from 'react-native';
+import ReactNativeHapticFeedback, {
+  HapticFeedbackTypes,
+} from 'react-native-haptic-feedback';
 
-const vibrate = (pattern: number | number[]): void => {
-  if (Platform.OS === 'web') return;
+type HapticType = keyof typeof HapticFeedbackTypes;
+
+const options = {
+  enableVibrateFallback: true,
+  ignoreAndroidSystemSettings: false,
+};
+
+const trigger = (type: HapticType): void => {
   try {
-    Vibration.vibrate(pattern);
+    ReactNativeHapticFeedback.trigger(type, options);
   } catch {
-    // No haptic hardware or permission — silent no-op.
+    // No haptic hardware / unsupported platform — silent no-op.
   }
 };
 
 export const haptics = {
-  light: () => vibrate(10),
-  medium: () => vibrate(20),
-  heavy: () => vibrate(40),
-  success: () => vibrate([0, 30, 50, 30]),
-  warning: () => vibrate([0, 20, 40, 60]),
-  error: () => vibrate([0, 50, 30, 50, 30, 50]),
-  select: () => vibrate(8),
+  light: () => trigger('impactLight'),
+  medium: () => trigger('impactMedium'),
+  heavy: () => trigger('impactHeavy'),
+  success: () => trigger('notificationSuccess'),
+  warning: () => trigger('notificationWarning'),
+  error: () => trigger('notificationError'),
+  select: () => trigger('selection'),
 };

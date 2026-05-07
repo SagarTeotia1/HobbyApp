@@ -1,6 +1,7 @@
+// Display labels / colors for each card type. Mirrors LearningCardType in card.types.ts.
+
 export const CARD_TYPES = [
   'concept',
-  'quiz',
   'memory_hook',
   'analogy',
   'mistake_fix',

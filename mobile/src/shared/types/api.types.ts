@@ -1,7 +1,14 @@
 export interface ApiSuccess<T> {
   success: true;
   data: T;
-  meta?: { pagination?: { page: number; limit: number; total: number } };
+  meta?: {
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      hasMore: boolean;
+    };
+  };
 }
 
 export interface ApiFailure {

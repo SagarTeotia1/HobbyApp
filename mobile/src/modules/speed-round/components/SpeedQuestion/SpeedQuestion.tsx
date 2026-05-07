@@ -28,7 +28,7 @@ export function SpeedQuestion({ question, onAnswer }: SpeedQuestionProps) {
         {question.options.map((opt, i) => {
           const isSelected = selected === i;
           const isCorrect = i === question.correctIndex;
-          let bg = colors.surface;
+          let bg: string = colors.surface;
           if (isSelected) bg = isCorrect ? colors.success : colors.danger;
           else if (selected !== null && isCorrect) bg = colors.success;
 

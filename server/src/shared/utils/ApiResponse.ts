@@ -4,6 +4,7 @@ export interface PaginationMeta {
   page: number;
   limit: number;
   total: number;
+  hasMore: boolean;
 }
 
 export interface SuccessResponse<T> {

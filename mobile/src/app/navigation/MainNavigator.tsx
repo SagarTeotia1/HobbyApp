@@ -2,8 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DashboardScreen } from '../../modules/dashboard/screens/DashboardScreen';
 import { ProfileScreen } from '../../modules/profile/screens/ProfileScreen';
-import { ProgressScreen } from '../../modules/progress/screens/ProgressScreen';
 import { FeedNavigator } from './FeedNavigator';
+import { ROUTES } from './routes';
 import { colors } from '../theme';
 import type { MainTabParamList } from './types';
 
@@ -21,10 +21,9 @@ export function MainNavigator() {
           borderTopColor: colors.border,
         },
       }}>
-      <Tab.Screen name="Tab.Dashboard" component={DashboardScreen} options={{ title: 'Home' }} />
-      <Tab.Screen name="Tab.Feed" component={FeedNavigator} options={{ title: 'Learn' }} />
-      <Tab.Screen name="Tab.Progress" component={ProgressScreen} options={{ title: 'Progress' }} />
-      <Tab.Screen name="Tab.Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+      <Tab.Screen name={ROUTES.TAB_FEED} component={FeedNavigator} options={{ title: 'Learn' }} />
+      <Tab.Screen name={ROUTES.TAB_DASHBOARD} component={DashboardScreen} options={{ title: 'Home' }} />
+      <Tab.Screen name={ROUTES.TAB_PROFILE} component={ProfileScreen} options={{ title: 'Profile' }} />
     </Tab.Navigator>
   );
 }

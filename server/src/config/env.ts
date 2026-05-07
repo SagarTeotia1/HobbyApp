@@ -22,10 +22,11 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
 
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
-  GEMINI_MODEL_FAST: z.string().default('gemini-1.5-flash'),
-  GEMINI_MODEL_PRO: z.string().default('gemini-1.5-pro'),
+  GEMINI_MODEL_FAST: z.string().default('gemini-2.0-flash'),
+  GEMINI_MODEL_PRO: z.string().default('gemini-2.0-flash'),
 
   CORS_ORIGIN: z.string().default('*'),
+  CLIENT_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

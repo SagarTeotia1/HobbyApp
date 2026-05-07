@@ -1,9 +1,5 @@
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+import { nanoid } from 'nanoid/non-secure';
 
-export function generateUUID(length = 21): string {
-  let id = '';
-  for (let i = 0; i < length; i++) {
-    id += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
-  }
-  return id;
+export function generateUUID(size = 21): string {
+  return nanoid(size);
 }

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../app/theme';
+import { colors, spacing, radius } from '@app/theme';
 
 export const aiChatStyles = StyleSheet.create({
   collapsed: {

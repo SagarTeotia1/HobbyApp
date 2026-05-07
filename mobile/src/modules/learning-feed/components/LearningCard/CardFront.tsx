@@ -14,7 +14,7 @@ export function CardFront({ card }: CardFrontProps) {
     <View style={styles.face}>
       <Badge label={card.type.replace('_', ' ').toUpperCase()} tone="primary" style={styles.typeBadge} />
       <Typography variant="heading">{card.title}</Typography>
-      <Typography variant="body">{card.content}</Typography>
+      <Typography variant="body">{card.frontContent}</Typography>
       <View style={styles.flipHint}>
         <Typography variant="caption" muted>── tap to flip ──</Typography>
       </View>

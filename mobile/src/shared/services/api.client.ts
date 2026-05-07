@@ -1,5 +1,6 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { storageService } from './storage.service';
+import type { ApiEnvelope } from '../types/api.types';
 
 const API_BASE_URL = __DEV__
   ? 'http://10.0.2.2:3000/api/v1'
@@ -29,20 +30,7 @@ apiClient.interceptors.response.use(
   },
 );
 
-export interface ApiSuccess<T> {
-  success: true;
-  data: T;
-  meta?: { pagination?: { page: number; limit: number; total: number } };
-}
-
-export interface ApiFailure {
-  success: false;
-  error: { code: string; message: string; details?: unknown };
-}
-
-export type ApiEnvelope<T> = ApiSuccess<T> | ApiFailure;
-
-export async function unwrap<T>(promise: Promise<{ data: ApiEnvelope<T> }>): Promise<T> {
+export async function unwrap<T>(promise: Promise<AxiosResponse<ApiEnvelope<T>>>): Promise<T> {
   const { data } = await promise;
   if (!data.success) {
     throw new Error(data.error.message);

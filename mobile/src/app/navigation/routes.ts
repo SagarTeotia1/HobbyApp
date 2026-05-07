@@ -1,17 +1,24 @@
+// ALL route name strings live here. Never hardcode a route string anywhere else.
+
 export const ROUTES = {
+  // Root stack containers
   ROOT: 'Root',
   ONBOARDING: 'Onboarding',
+  MAIN: 'Main',
+  FEED: 'Feed',
+
+  // Onboarding stack
   ONBOARDING_HOBBY: 'Onboarding.Hobby',
   ONBOARDING_TIME: 'Onboarding.Time',
   ONBOARDING_LEVEL: 'Onboarding.Level',
+  ONBOARDING_PLAN_GENERATION: 'Onboarding.PlanGeneration',
 
-  MAIN: 'Main',
-  TAB_DASHBOARD: 'Tab.Dashboard',
+  // Main bottom tabs (CLAUDE.md §7: exactly 3 tabs)
   TAB_FEED: 'Tab.Feed',
-  TAB_PROGRESS: 'Tab.Progress',
+  TAB_DASHBOARD: 'Tab.Dashboard',
   TAB_PROFILE: 'Tab.Profile',
 
-  FEED: 'Feed',
+  // Feed stack (Progress lives here, not as a tab)
   FEED_LEARNING: 'Feed.Learning',
   FEED_SPEED_ROUND: 'Feed.SpeedRound',
   FEED_BOSS_ROUND: 'Feed.BossRound',

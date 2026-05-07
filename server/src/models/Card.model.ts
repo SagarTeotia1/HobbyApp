@@ -7,7 +7,6 @@ const cardSchema = new Schema(
       type: String,
       enum: [
         'concept',
-        'quiz',
         'memory_hook',
         'analogy',
         'mistake_fix',
@@ -18,10 +17,11 @@ const cardSchema = new Schema(
       required: true,
     },
     title: { type: String, required: true },
-    content: { type: String, required: true },
+    frontContent: { type: String, required: true },
+    backContent: { type: String, required: true },
     simplifiedContent: { type: String, default: null },
-    imageUrl: { type: String, default: null },
     tags: { type: [String], default: [] },
+    estimatedReadSeconds: { type: Number, default: 30 },
     difficulty: {
       type: String,
       enum: ['beginner', 'intermediate', 'advanced'],

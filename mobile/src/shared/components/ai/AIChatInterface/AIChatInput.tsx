@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { aiChatStyles } from './AIChatInterface.styles';
-import { colors } from '../../../app/theme';
+import { colors } from '@app/theme';
 import { Icon } from '../../ui/Icon/Icon';
 
 export interface AIChatInputProps {

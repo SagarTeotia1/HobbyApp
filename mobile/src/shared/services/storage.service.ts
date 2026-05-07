@@ -1,29 +1,20 @@
 import { MMKV } from 'react-native-mmkv';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 export const storage = new MMKV({ id: 'hobbyforge.v1' });
 
-const KEYS = {
-  USER_UUID: 'user.uuid',
-  JWT: 'auth.jwt',
-  CURRENT_HOBBY: 'user.currentHobby',
-  ONBOARDING_DONE: 'onboarding.done',
-  THEME: 'app.theme',
-} as const;
-
 export const storageService = {
-  getUUID: (): string | undefined => storage.getString(KEYS.USER_UUID),
-  setUUID: (v: string): void => storage.set(KEYS.USER_UUID, v),
+  getUUID: (): string | undefined => storage.getString(STORAGE_KEYS.USER_UUID),
+  setUUID: (v: string): void => storage.set(STORAGE_KEYS.USER_UUID, v),
 
-  getJWT: (): string | undefined => storage.getString(KEYS.JWT),
-  setJWT: (v: string): void => storage.set(KEYS.JWT, v),
+  getJWT: (): string | undefined => storage.getString(STORAGE_KEYS.JWT_TOKEN),
+  setJWT: (v: string): void => storage.set(STORAGE_KEYS.JWT_TOKEN, v),
 
-  getCurrentHobby: (): string | undefined => storage.getString(KEYS.CURRENT_HOBBY),
-  setCurrentHobby: (v: string): void => storage.set(KEYS.CURRENT_HOBBY, v),
+  getCurrentHobby: (): string | undefined => storage.getString(STORAGE_KEYS.CURRENT_HOBBY_ID),
+  setCurrentHobby: (v: string): void => storage.set(STORAGE_KEYS.CURRENT_HOBBY_ID, v),
 
-  getOnboardingDone: (): boolean => storage.getBoolean(KEYS.ONBOARDING_DONE) ?? false,
-  setOnboardingDone: (v: boolean): void => storage.set(KEYS.ONBOARDING_DONE, v),
+  getOnboardingDone: (): boolean => storage.getBoolean(STORAGE_KEYS.IS_ONBOARDED) ?? false,
+  setOnboardingDone: (v: boolean): void => storage.set(STORAGE_KEYS.IS_ONBOARDED, v),
 
   clearAll: (): void => storage.clearAll(),
 };
-
-export { KEYS as STORAGE_KEYS };

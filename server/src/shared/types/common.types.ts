@@ -1,6 +1,10 @@
+// Single source of truth for card / question / signal / user types.
+// Mirrors mobile/src/shared/types/card.types.ts + user.types.ts. Edit together.
+
+export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
+
 export type LearningCardType =
   | 'concept'
-  | 'quiz'
   | 'memory_hook'
   | 'analogy'
   | 'mistake_fix'
@@ -13,22 +17,39 @@ export type CardInteraction =
   | 'needs_review'
   | 'needs_simpler'
   | 'bookmarked'
+  | 'flipped'
   | 'skipped';
-
-export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface LearningCard {
   id: string;
   hobbyId: string;
   type: LearningCardType;
-  title: string;
-  content: string;
-  simplifiedContent?: string;
-  imageUrl?: string;
-  tags: string[];
   difficulty: DifficultyLevel;
   conceptId: string;
+  title: string;
+  frontContent: string;
+  backContent: string;
+  simplifiedContent?: string;
+  tags: string[];
+  estimatedReadSeconds: number;
   generatedAt: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  cardId: string;
+  hobbyId: string;
+  question: string;
+  options: [string, string, string, string];
+  correctIndex: 0 | 1 | 2 | 3;
+  explanation: string;
+  difficulty: DifficultyLevel;
+  xpReward: number;
+}
+
+export interface BossQuestion extends QuizQuestion {
+  xpPenalty: number;
+  timeLimitSeconds: number;
 }
 
 export interface LearningSignal {
@@ -38,39 +59,33 @@ export interface LearningSignal {
   interaction: CardInteraction;
   responseTimeMs: number;
   sessionId: string;
+  timestamp: string;
 }
 
-export interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-  xpReward: number;
-}
-
-export interface BossQuestion extends QuizQuestion {
-  xpPenalty: number;
-  timeLimit: number;
+export interface UserPreferences {
+  dailyMinutes: 5 | 10 | 15 | 30 | 60;
+  skillLevel: DifficultyLevel;
 }
 
 export interface AnonymousUser {
   uuid: string;
-  createdAt: string;
   currentHobbyId: string;
   xp: number;
   level: number;
   streak: number;
-  lastActiveDate: string;
+  lastActiveDateISO: string;
+  preferences: UserPreferences;
+  createdAt: string;
 }
 
 export interface UserProgress {
   userId: string;
   hobbyId: string;
-  masteredConcepts: string[];
-  weakConcepts: string[];
-  cardsSeen: number;
-  cardsUnderstood: number;
+  totalCardsSeenCount: number;
+  totalCardsUnderstoodCount: number;
+  masteredConceptIds: string[];
+  weakConceptIds: string[];
   averageResponseTimeMs: number;
   currentDifficulty: DifficultyLevel;
+  currentStageId: string;
 }

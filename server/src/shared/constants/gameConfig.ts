@@ -1,3 +1,7 @@
+// Single source of truth for ALL game numbers.
+// This file is mirrored EXACTLY in mobile/src/shared/constants/gameConfig.ts.
+// If you edit one, edit the other. Never define these numbers anywhere else.
+
 export const GAME_CONFIG = {
   CARDS_BEFORE_SPEED_ROUND: 3,
   CARDS_BEFORE_BOSS_ROUND: 3,
@@ -11,19 +15,25 @@ export const GAME_CONFIG = {
   BOSS_ROUND: {
     XP_PER_CORRECT: 5,
     XP_PENALTY_PER_WRONG: 2,
+    TOTAL_QUESTIONS: 10,
     COMBO_THRESHOLD: 3,
     COMBO_MULTIPLIER: 2,
+    PER_QUESTION_TIME_SECONDS: 15,
   },
 
   XP: {
     CARD_UNDERSTOOD: 5,
-    CARD_ALREADY_KNOWN: 2,
+    CARD_NEEDS_REVIEW: 0,
     STREAK_BONUS_PER_DAY: 10,
   },
 
   PREFETCH: {
     NEXT_BATCH_SIZE: 10,
     TRIGGER_AT_REMAINING: 3,
+  },
+
+  LEVELS: {
+    XP_PER_LEVEL: 500,
   },
 } as const;
 

@@ -1,9 +1,18 @@
 import { z } from 'zod';
 
-export const onboardingSchema = z.object({
+export const onboardingInitSchema = z.object({});
+
+export const onboardingCompleteSchema = z.object({
   hobbySlug: z.string().min(1).max(80),
-  dailyTimeMinutes: z.number().int().min(5).max(120),
+  dailyMinutes: z.union([
+    z.literal(5),
+    z.literal(10),
+    z.literal(15),
+    z.literal(30),
+    z.literal(60),
+  ]),
   skillLevel: z.enum(['beginner', 'intermediate', 'advanced']),
 });
 
-export type OnboardingInput = z.infer<typeof onboardingSchema>;
+export type OnboardingInitInput = z.infer<typeof onboardingInitSchema>;
+export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;

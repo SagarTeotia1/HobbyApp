@@ -26,7 +26,10 @@ const envSchema = z.object({
   GEMINI_MODEL_PRO: z.string().default('gemini-2.0-flash'),
 
   CORS_ORIGIN: z.string().default('*'),
-  CLIENT_URL: z.string().url().optional(),
+  CLIENT_URL: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().url().optional(),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;

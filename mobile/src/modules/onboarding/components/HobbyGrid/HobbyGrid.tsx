@@ -6,7 +6,7 @@ import { hobbyGridStyles as styles } from './HobbyGrid.styles';
 export interface HobbyOption {
   id: string;
   name: string;
-  emoji: string;
+  emoji?: string;
 }
 
 export interface HobbyGridProps {

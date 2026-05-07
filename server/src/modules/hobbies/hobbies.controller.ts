@@ -2,10 +2,14 @@ import type { Request, Response } from 'express';
 import { ApiResponse } from '../../shared/utils/ApiResponse';
 import { ApiError } from '../../shared/utils/ApiError';
 import { hobbiesService } from './hobbies.service';
+import { createCustomHobbySchema, searchHobbiesSchema } from './hobbies.validator';
 
 export const hobbiesController = {
-  async list(_req: Request, res: Response): Promise<Response> {
-    const data = await hobbiesService.list();
+  async list(req: Request, res: Response): Promise<Response> {
+    const query = searchHobbiesSchema.parse(req.query);
+    const data = query.q
+      ? await hobbiesService.search(query.q, query.limit)
+      : await hobbiesService.list(query.limit);
     return ApiResponse.ok(res, data);
   },
 
@@ -14,5 +18,11 @@ export const hobbiesController = {
     const data = await hobbiesService.findBySlug(slug);
     if (!data) throw ApiError.notFound('Hobby not found');
     return ApiResponse.ok(res, data);
+  },
+
+  async createCustom(req: Request, res: Response): Promise<Response> {
+    const body = createCustomHobbySchema.parse(req.body);
+    const hobby = await hobbiesService.createCustom(body.name);
+    return ApiResponse.created(res, { hobby });
   },
 };

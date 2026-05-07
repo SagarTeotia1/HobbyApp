@@ -1,19 +1,29 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Typography } from '../../../shared/components/ui/Typography/Typography';
+import { useRoute, type RouteProp } from '@react-navigation/native';
+import { PlanGeneratingAnimation } from '../components/PlanGeneratingAnimation/PlanGeneratingAnimation';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { colors, spacing } from '../../../app/theme';
+import type { OnboardingStackParamList } from '../../../app/navigation/types';
+import { ROUTES } from '../../../app/navigation/routes';
+
+type ScreenRoute = RouteProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_PLAN_GENERATION>;
 
 export function PlanGenerationScreen() {
+  const route = useRoute<ScreenRoute>();
+  const { mutate } = useOnboarding();
+
   useEffect(() => {
-    // TODO: poll for roadmap completion, then navigate to feed
-  }, []);
+    mutate({
+      hobbySlug: route.params.hobbySlug,
+      dailyMinutes: route.params.dailyMinutes,
+      skillLevel: route.params.skillLevel,
+    });
+  }, [mutate, route.params.dailyMinutes, route.params.hobbySlug, route.params.skillLevel]);
 
   return (
     <View style={styles.root}>
-      <Typography variant="heading">Building your roadmap...</Typography>
-      <Typography variant="body" muted>
-        AI is generating your personal learning plan.
-      </Typography>
+      <PlanGeneratingAnimation hobbyName={route.params.hobbySlug} />
     </View>
   );
 }

@@ -1,25 +1,25 @@
 export const colors = {
-  bg: '#0B0B10',
-  bgElevated: '#15151D',
-  surface: '#1C1C26',
-  border: '#2A2A38',
+  bg: '#F0EDE5',
+  bgElevated: '#FFFFFF',
+  surface: '#E7E2D7',
+  border: '#C7C1B1',
 
-  primary: '#7C5CFF',
-  primaryDim: '#5C44CC',
-  accent: '#FF5CA8',
+  primary: '#004643',
+  primaryDim: '#0B5C58',
+  accent: '#007C76',
 
   success: '#4ADE80',
   warning: '#FACC15',
   danger: '#F87171',
 
-  text: '#F4F4F8',
-  textMuted: '#A0A0B4',
-  textDim: '#6F6F84',
+  text: '#0E2A2A',
+  textMuted: '#476160',
+  textDim: '#66807F',
 
   xp: '#FFD24A',
   streak: '#FF6B3D',
 
-  overlay: 'rgba(0,0,0,0.6)',
+  overlay: 'rgba(0,0,0,0.35)',
 } as const;
 
 export type Colors = typeof colors;

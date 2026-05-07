@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { onboardingService } from '../services/onboarding.service';
 
 export interface HobbySearchResult {
   id: string;
   name: string;
-  emoji: string;
 }
 
 export const useHobbySearch = () => {
@@ -21,16 +21,17 @@ export const useHobbySearch = () => {
     }
     setIsLoading(true);
     try {
-      // TODO: call GET /hobbies/suggestions?q=debouncedQuery via onboarding.service
+      const data = await onboardingService.searchHobbies(q);
+      setResults(data.map((item) => ({ id: item.slug, name: item.name })));
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   // trigger search when debounced query changes
-  useState(() => {
+  useEffect(() => {
     void search(debouncedQuery);
-  });
+  }, [debouncedQuery, search]);
 
   return { query, setQuery, results, isLoading };
 };

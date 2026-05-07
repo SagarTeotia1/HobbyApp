@@ -16,6 +16,7 @@ interface UserState {
   hydrate: () => void;
   setAuth: (uuid: string, jwt: string) => void;
   setHobby: (hobbyId: string) => void;
+  setPreferences: (dailyTimeMinutes: number, skillLevel: DifficultyLevel) => void;
   setOnboarded: (done: boolean) => void;
   setStats: (xp: number, level: number, streak: number) => void;
   addXP: (delta: number) => void;
@@ -52,6 +53,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     storageService.setCurrentHobby(hobbyId);
     set({ currentHobbyId: hobbyId });
   },
+
+  setPreferences: (dailyTimeMinutes, skillLevel) => set({ dailyTimeMinutes, skillLevel }),
 
   setOnboarded: (done) => {
     storageService.setOnboardingDone(done);

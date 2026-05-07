@@ -4,9 +4,11 @@ import { connectMongo, disconnectMongo } from './infrastructure/database/mongodb
 import { closeQueues } from './infrastructure/queue/queue.registry';
 import { redis } from './infrastructure/redis/upstash';
 import { logger } from './shared/logger/winston';
+import { hobbiesService } from './modules/hobbies/hobbies.service';
 
 async function main(): Promise<void> {
   await connectMongo();
+  await hobbiesService.seedPredefined();
 
   const app = createApp();
 

@@ -3,9 +3,13 @@ import { ROUTES } from './routes';
 
 export type OnboardingStackParamList = {
   [ROUTES.ONBOARDING_HOBBY]: undefined;
-  [ROUTES.ONBOARDING_TIME]: undefined;
-  [ROUTES.ONBOARDING_LEVEL]: undefined;
-  [ROUTES.ONBOARDING_PLAN_GENERATION]: undefined;
+  [ROUTES.ONBOARDING_TIME]: { hobbySlug: string };
+  [ROUTES.ONBOARDING_LEVEL]: { hobbySlug: string; dailyMinutes: 5 | 10 | 15 | 30 | 60 };
+  [ROUTES.ONBOARDING_PLAN_GENERATION]: {
+    hobbySlug: string;
+    dailyMinutes: 5 | 10 | 15 | 30 | 60;
+    skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  };
 };
 
 export type FeedStackParamList = {

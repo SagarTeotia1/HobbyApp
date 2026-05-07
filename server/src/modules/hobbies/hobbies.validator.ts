@@ -13,6 +13,11 @@ export const validateHobbySchema = z.object({
   name: z.string().min(1).max(100),
 });
 
+export const createCustomHobbySchema = z.object({
+  name: z.string().min(2).max(100),
+});
+
 export type SearchHobbiesInput = z.infer<typeof searchHobbiesSchema>;
 export type GetHobbyInput = z.infer<typeof getHobbySchema>;
 export type ValidateHobbyInput = z.infer<typeof validateHobbySchema>;
+export type CreateCustomHobbyInput = z.infer<typeof createCustomHobbySchema>;

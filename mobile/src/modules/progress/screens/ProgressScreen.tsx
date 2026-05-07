@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -20,6 +20,12 @@ export function ProgressScreen() {
   const xp = useUserStore((s) => s.xp);
   const level = useUserStore((s) => s.level);
   const streak = useUserStore((s) => s.streak);
+  const updateStreak = useUserStore((s) => s.updateStreak);
+
+  useEffect(() => {
+    updateStreak();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const progressToNextLevel = (xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL) / GAME_CONFIG.LEVELS.XP_PER_LEVEL;
 

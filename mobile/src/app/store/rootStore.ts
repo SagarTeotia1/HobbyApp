@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { storageService } from '../../shared/services/storage.service';
+import { GAME_CONFIG } from '../../shared/constants/gameConfig';
 import type { DifficultyLevel } from '../../shared/types/card.types';
 
 interface UserState {
@@ -20,6 +21,7 @@ interface UserState {
   setOnboarded: (done: boolean) => void;
   setStats: (xp: number, level: number, streak: number) => void;
   addXP: (delta: number) => void;
+  updateStreak: () => void;
   reset: () => void;
 }
 
@@ -40,6 +42,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       jwt: storageService.getJWT() ?? null,
       currentHobbyId: storageService.getCurrentHobby() ?? null,
       isOnboarded: storageService.getOnboardingDone(),
+      xp: storageService.getXP(),
+      level: storageService.getLevel(),
+      streak: storageService.getStreak(),
     });
   },
 
@@ -61,22 +66,34 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isOnboarded: done });
   },
 
-  setStats: (xp, level, streak) => set({ xp, level, streak }),
+  setStats: (xp, level, streak) => {
+    storageService.setXP(xp);
+    storageService.setLevel(level);
+    storageService.setStreak(streak);
+    set({ xp, level, streak });
+  },
 
-  addXP: (delta) => set({ xp: Math.max(0, get().xp + delta) }),
+  addXP: (delta) => {
+    const newXP = Math.max(0, get().xp + delta);
+    const newLevel = Math.floor(newXP / GAME_CONFIG.LEVELS.XP_PER_LEVEL) + 1;
+    storageService.setXP(newXP);
+    storageService.setLevel(newLevel);
+    set({ xp: newXP, level: newLevel });
+  },
+
+  updateStreak: () => {
+    const today = new Date().toDateString();
+    const last = storageService.getLastSessionDate();
+    if (last === today) return;
+    const yesterday = new Date(Date.now() - 86_400_000).toDateString();
+    const newStreak = last === yesterday ? get().streak + 1 : 1;
+    storageService.setStreak(newStreak);
+    storageService.setLastSessionDate(today);
+    set({ streak: newStreak });
+  },
 
   reset: () => {
     storageService.clearAll();
-    set({
-      uuid: null,
-      jwt: null,
-      currentHobbyId: null,
-      skillLevel: 'beginner',
-      dailyTimeMinutes: 10,
-      xp: 0,
-      level: 1,
-      streak: 0,
-      isOnboarded: false,
-    });
+    set({ uuid: null, jwt: null, currentHobbyId: null, skillLevel: 'beginner', dailyTimeMinutes: 10, xp: 0, level: 1, streak: 0, isOnboarded: false });
   },
 }));

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { storageService } from '../../../shared/services/storage.service';
 import type { HobbyProgress, TopicProgress } from '../types/roadmap.types';
 
 interface RoadmapState {
@@ -9,8 +10,17 @@ interface RoadmapState {
   reset: () => void;
 }
 
+function loadProgress(): Record<string, HobbyProgress> {
+  try {
+    const raw = storageService.getRoadmapProgress();
+    return raw ? (JSON.parse(raw) as Record<string, HobbyProgress>) : {};
+  } catch {
+    return {};
+  }
+}
+
 export const useRoadmapStore = create<RoadmapState>((set, get) => ({
-  progress: {},
+  progress: loadProgress(),
 
   markVideoWatched: (hobbyId, topicId, totalVideos) => {
     set((state) => {
@@ -31,7 +41,9 @@ export const useRoadmapStore = create<RoadmapState>((set, get) => ({
         },
         totalXP: hobbyProgress.totalXP + 25,
       };
-      return { progress: { ...state.progress, [hobbyId]: updated } };
+      const newProgress = { ...state.progress, [hobbyId]: updated };
+      storageService.setRoadmapProgress(JSON.stringify(newProgress));
+      return { progress: newProgress };
     });
   },
 
@@ -45,5 +57,8 @@ export const useRoadmapStore = create<RoadmapState>((set, get) => ({
     return Object.values(hp.topicsProgress).filter((t) => t.completed).length;
   },
 
-  reset: () => set({ progress: {} }),
+  reset: () => {
+    storageService.setRoadmapProgress('{}');
+    set({ progress: {} });
+  },
 }));

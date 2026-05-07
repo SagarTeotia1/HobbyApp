@@ -12,6 +12,7 @@ export interface AIChatInterfaceProps {
   suggestions?: string[];
   collapsed?: boolean;
   placeholder?: string;
+  onMessageSent?: (message: string) => void;
 }
 
 export function AIChatInterface({
@@ -19,6 +20,7 @@ export function AIChatInterface({
   suggestions = [],
   collapsed = false,
   placeholder,
+  onMessageSent,
 }: AIChatInterfaceProps) {
   const [input, setInput] = useState('');
   const { isOpen, messages, isStreaming, open, send } = useAIChat(hobbyId);
@@ -27,6 +29,7 @@ export function AIChatInterface({
     const trimmed = input.trim();
     if (!trimmed) return;
     setInput('');
+    onMessageSent?.(trimmed);
     void send(trimmed);
   };
 

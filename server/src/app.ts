@@ -8,8 +8,6 @@ import { ApiResponse } from './shared/utils/ApiResponse';
 
 import { onboardingRouter } from './modules/onboarding/onboarding.router';
 import { learningFeedRouter } from './modules/learning-feed/learningFeed.router';
-import { speedRoundRouter } from './modules/speed-round/speedRound.router';
-import { bossRoundRouter } from './modules/boss-round/bossRound.router';
 import { progressRouter } from './modules/progress/progress.router';
 import { leaderboardRouter } from './modules/leaderboard/leaderboard.router';
 import { aiRouter } from './modules/ai/ai.router';
@@ -31,8 +29,6 @@ export function createApp(): Application {
 
   app.use('/api/v1/onboarding', onboardingRouter);
   app.use('/api/v1/feed', learningFeedRouter);
-  app.use('/api/v1/speed-round', speedRoundRouter);
-  app.use('/api/v1/boss-round', bossRoundRouter);
   app.use('/api/v1/progress', progressRouter);
   app.use('/api/v1/leaderboard', leaderboardRouter);
   app.use('/api/v1/ai', aiRouter);

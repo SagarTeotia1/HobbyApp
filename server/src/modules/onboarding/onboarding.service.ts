@@ -6,7 +6,7 @@ import { HobbyModel } from '../../models/Hobby.model';
 import { RoadmapModel } from '../../models/Roadmap.model';
 import { CardModel } from '../../models/Card.model';
 import { aiService } from '../ai/ai.service';
-import { ApiError } from '../../shared/utils/ApiError';
+
 import type { CompleteOnboardingPayload, CompleteOnboardingResponse, OnboardingInitResponse } from './onboarding.types';
 
 function buildFallbackRoadmap(hobbyId: string): Array<{
@@ -64,8 +64,14 @@ export const onboardingService = {
     userId: string,
     payload: CompleteOnboardingPayload,
   ): Promise<CompleteOnboardingResponse> {
-    const hobby = await HobbyModel.findOne({ slug: payload.hobbySlug, isActive: true }).lean();
-    if (!hobby) throw ApiError.badRequest('Invalid hobby');
+    let hobby = await HobbyModel.findOne({ slug: payload.hobbySlug }).lean();
+    if (!hobby) {
+      const name = payload.hobbySlug
+        .split(/[-_\s]+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      hobby = await HobbyModel.create({ slug: payload.hobbySlug, name, isActive: true });
+    }
 
     // Keep roadmap deterministic/local to avoid extra Gemini calls during onboarding.
     const stages = buildFallbackRoadmap(hobby.slug);

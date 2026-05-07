@@ -14,8 +14,6 @@ export type OnboardingStackParamList = {
 
 export type FeedStackParamList = {
   [ROUTES.FEED_LEARNING]: undefined;
-  [ROUTES.FEED_SPEED_ROUND]: undefined;
-  [ROUTES.FEED_BOSS_ROUND]: undefined;
   [ROUTES.FEED_PROGRESS]: undefined;
 };
 

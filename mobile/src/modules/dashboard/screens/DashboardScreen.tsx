@@ -7,7 +7,6 @@ import { AIChatInterface } from '../../../shared/components/ai/AIChatInterface/A
 import { UserHeroCard } from '../components/UserHeroCard/UserHeroCard';
 import { ContinueLearningCard } from '../components/ContinueLearningCard/ContinueLearningCard';
 import { LearningJourneyCard } from '../components/LearningJourneyCard/LearningJourneyCard';
-import { GamesSection } from '../components/GamesSection/GamesSection';
 import { FlashcardPreviewCard } from '../components/FlashcardPreviewCard/FlashcardPreviewCard';
 import { useDashboard } from '../hooks/useDashboard';
 import { useUserStore } from '../../../app/store/rootStore';
@@ -51,14 +50,6 @@ export function DashboardScreen() {
     navigation.navigate(ROUTES.TAB_FEED, { screen: ROUTES.FEED_LEARNING });
   };
 
-  const handleSpeedRound = () => {
-    navigation.navigate(ROUTES.TAB_FEED, { screen: ROUTES.FEED_SPEED_ROUND });
-  };
-
-  const handleBossRound = () => {
-    navigation.navigate(ROUTES.TAB_FEED, { screen: ROUTES.FEED_BOSS_ROUND });
-  };
-
   const nextCardTitle = nextCard?.title ?? 'Start Learning';
   const conceptLabel = nextCard?.conceptId.replace(/_/g, ' ') ?? hobbyName;
 
@@ -83,11 +74,6 @@ export function DashboardScreen() {
         {roadmapStages.length > 0 && (
           <LearningJourneyCard stages={roadmapStages} />
         )}
-
-        <GamesSection
-          onSpeedRound={handleSpeedRound}
-          onBossRound={handleBossRound}
-        />
 
         {nextCard ? (
           <FlashcardPreviewCard

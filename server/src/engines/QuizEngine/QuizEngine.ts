@@ -1,4 +1,4 @@
-import type { QuizQuestion, BossQuestion, DifficultyLevel } from '../../shared/types/common.types';
+import type { QuizQuestion, DifficultyLevel } from '../../shared/types/common.types';
 
 export interface QuizGenerationParams {
   hobbyId: string;
@@ -8,11 +8,7 @@ export interface QuizGenerationParams {
 }
 
 export const QuizEngine = {
-  buildSpeedRound(_params: QuizGenerationParams): QuizQuestion[] {
-    throw new Error('QuizEngine.buildSpeedRound not implemented');
-  },
-
-  buildBossRound(_params: QuizGenerationParams): BossQuestion[] {
-    throw new Error('QuizEngine.buildBossRound not implemented');
+  buildQuiz(_params: QuizGenerationParams): QuizQuestion[] {
+    throw new Error('QuizEngine.buildQuiz not implemented');
   },
 };

@@ -20,8 +20,6 @@ export const ROUTES = {
 
   // Feed stack (Progress lives here, not as a tab)
   FEED_LEARNING: 'Feed.Learning',
-  FEED_SPEED_ROUND: 'Feed.SpeedRound',
-  FEED_BOSS_ROUND: 'Feed.BossRound',
   FEED_PROGRESS: 'Feed.Progress',
 } as const;
 

@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Typography } from '../../../shared/components/ui/Typography/Typography';
 import { colors, spacing } from '../../../app/theme';
 import { useUserStore } from '../../../app/store/rootStore';
@@ -15,11 +13,8 @@ import { useSwipeActions } from '../hooks/useSwipeActions';
 import { useSessionRound } from '../hooks/useSessionRound';
 import { Button } from '../../../shared/components/ui/Button/Button';
 import { AIChatInterface } from '../../../shared/components/ai/AIChatInterface/AIChatInterface';
-import type { FeedStackParamList } from '../../../app/navigation/types';
-import { ROUTES } from '../../../app/navigation/routes';
 
 export function LearningFeedScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<FeedStackParamList>>();
   const hobbyId = useUserStore((s) => s.currentHobbyId);
   const setHobby = useUserStore((s) => s.setHobby);
   const activeHobbyId = hobbyId ?? 'chess';
@@ -46,12 +41,7 @@ export function LearningFeedScreen() {
   const handleSwipe = async (cardId: string, direction: 'left' | 'right' | 'down') => {
     await onSwipe(cardId, direction, 1200);
     setDeckCards((prev) => prev.filter((card) => card.id !== cardId));
-    const nextAction = advance();
-    if (nextAction === 'speed_round') {
-      navigation.navigate(ROUTES.FEED_SPEED_ROUND);
-    } else if (nextAction === 'boss_round') {
-      navigation.navigate(ROUTES.FEED_BOSS_ROUND);
-    }
+    advance();
   };
 
   React.useEffect(() => {

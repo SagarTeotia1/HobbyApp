@@ -14,8 +14,6 @@ import { WeakTopicsCard } from '../components/WeakTopicsCard/WeakTopicsCard';
 import { useProgressSession } from '../hooks/useProgress';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useLearningFeedStore } from '../../learning-feed/store/learningFeed.store';
-import { useBossRoundStore } from '../../boss-round/store/bossRound.store';
-import { useSpeedRoundStore } from '../../speed-round/store/speedRound.store';
 import { GAME_CONFIG } from '../../../shared/constants/gameConfig';
 import { colors, spacing } from '../../../app/theme';
 import type { FeedStackParamList } from '../../../app/navigation/types';
@@ -30,14 +28,6 @@ export function ProgressScreen() {
   const level = useUserStore((s) => s.level);
   const streak = useUserStore((s) => s.streak);
 
-  const bossXPGained = useBossRoundStore((s) => s.xpGained);
-  const bossXPLost = useBossRoundStore((s) => s.xpLost);
-  const speedCorrect = useSpeedRoundStore((s) => s.correctCount);
-
-  const roundXP =
-    bossXPGained - bossXPLost +
-    speedCorrect * GAME_CONFIG.SPEED_ROUND.XP_PER_CORRECT;
-
   const { data: sessionData, isLoading } = useProgressSession(sessionId);
 
   const progressToNextLevel =
@@ -47,7 +37,7 @@ export function ProgressScreen() {
   const cardsUnderstood = sessionData?.cardsUnderstood ?? 0;
   const cardsBookmarked = sessionData?.cardsBookmarked ?? 0;
   const weakTopics = sessionData?.weakTopics ?? [];
-  const sessionXP = (sessionData?.xpGained ?? 0) + Math.max(0, roundXP);
+  const sessionXP = sessionData?.xpGained ?? 0;
 
   const handleContinue = () => {
     navigation.navigate(ROUTES.FEED_LEARNING);

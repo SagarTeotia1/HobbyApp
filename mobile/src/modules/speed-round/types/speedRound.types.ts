@@ -5,3 +5,14 @@ export interface SpeedRoundSession {
   questions: QuizQuestion[];
   durationSeconds: number;
 }
+
+export interface SpeedRoundResult {
+  sessionId: string;
+  userId: string;
+  hobbyId: string;
+  correctCount: number;
+  totalAnswered: number;
+  durationSeconds: number;
+  xpEarned: number;
+  completedAt: string;
+}

@@ -1,5 +1,5 @@
 import { generateJson, generateStream } from '../../infrastructure/ai/gemini.client';
-import { buildHobbyOnboardingPrompt } from './prompts/hobbyOnboarding';
+import { buildHobbyValidationPrompt } from './prompts/hobbyValidation';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
 import type { AIHobbySuggestion } from './ai.types';
 import type { HobbySuggestInput, SimplifyCardInput } from './ai.validator';
@@ -9,7 +9,7 @@ export const aiService = {
     suggestions: AIHobbySuggestion[];
     clarifyingQuestion: string | null;
   }> {
-    const prompt = buildHobbyOnboardingPrompt({
+    const prompt = buildHobbyValidationPrompt({
       userInput: input.query,
       popularHobbies: ['Chess', 'Guitar', 'Photography', 'Cooking', 'Drawing'],
     });

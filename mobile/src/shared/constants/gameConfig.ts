@@ -30,6 +30,10 @@ export const GAME_CONFIG = {
     THRESHOLD: 120,
     VELOCITY_THRESHOLD: 800,
   },
+
+  LEVELS: {
+    XP_PER_LEVEL: 500,
+  },
 } as const;
 
 export type GameConfig = typeof GAME_CONFIG;

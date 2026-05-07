@@ -21,6 +21,13 @@ export interface SessionSummary {
   completedAt: string;
 }
 
+export interface DashboardRoadmapStage {
+  id: string;
+  title: string;
+  isCompleted: boolean;
+  isCurrent: boolean;
+}
+
 export interface DashboardData {
   xp: number;
   level: number;
@@ -31,4 +38,7 @@ export interface DashboardData {
   weakConcepts: string[];
   masteredConcepts: string[];
   currentDifficulty: string;
+  hobbyName: string;
+  hobbyId: string;
+  roadmapStages: DashboardRoadmapStage[];
 }

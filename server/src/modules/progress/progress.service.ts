@@ -1,6 +1,8 @@
 import { UserModel } from '../../models/User.model';
 import { UserProgressModel } from '../../models/UserProgress.model';
 import { CardInteractionModel } from '../../models/CardInteraction.model';
+import { HobbyModel } from '../../models/Hobby.model';
+import { RoadmapModel } from '../../models/Roadmap.model';
 import { GAME_CONFIG } from '../../shared/constants/gameConfig';
 import type { ProgressSummary, SessionSummary, DashboardData } from './progress.types';
 
@@ -53,15 +55,25 @@ export const progressService = {
   },
 
   async getDashboardData(userId: string, hobbyId: string): Promise<DashboardData> {
-    const [user, progress] = await Promise.all([
+    const [user, progress, hobby, roadmap] = await Promise.all([
       UserModel.findOne({ uuid: userId }).lean(),
       UserProgressModel.findOne({ userId, hobbyId }).lean(),
+      HobbyModel.findOne({ slug: hobbyId }).lean(),
+      RoadmapModel.findOne({ userId, hobbyId }).lean(),
     ]);
 
     const xp = user?.xp ?? 0;
     const level = user?.level ?? 1;
     const xpInLevel = xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL;
     const progressToNextLevel = xpInLevel / GAME_CONFIG.LEVELS.XP_PER_LEVEL;
+
+    const currentStageOrder = roadmap?.currentStageOrder ?? 0;
+    const roadmapStages = (roadmap?.stages ?? []).map((stage) => ({
+      id: stage.conceptId,
+      title: stage.title,
+      isCompleted: stage.isMastered,
+      isCurrent: stage.order === currentStageOrder,
+    }));
 
     return {
       xp,
@@ -73,6 +85,9 @@ export const progressService = {
       weakConcepts: progress?.weakConcepts ?? [],
       masteredConcepts: progress?.masteredConcepts ?? [],
       currentDifficulty: progress?.currentDifficulty ?? 'beginner',
+      hobbyName: hobby?.name ?? hobbyId,
+      hobbyId,
+      roadmapStages,
     };
   },
 };

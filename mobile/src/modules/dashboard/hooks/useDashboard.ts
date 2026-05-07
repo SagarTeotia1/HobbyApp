@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient, unwrap } from '../../../shared/services/api.client';
 import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { ApiEnvelope } from '../../../shared/types/api.types';
-import type { AnonymousUser } from '../../../shared/types/user.types';
+import { dashboardService } from '../services/dashboard.service';
 
-export function useDashboard() {
+export function useDashboard(hobbyId: string | null) {
   return useQuery({
-    queryKey: queryKeys.profile.me,
-    queryFn: () => unwrap(apiClient.get<ApiEnvelope<AnonymousUser>>('/profile/me')),
+    queryKey: hobbyId ? queryKeys.progress.dashboard(hobbyId) : ['dashboard', 'idle'],
+    queryFn: () => dashboardService.get(hobbyId!),
+    enabled: !!hobbyId,
+    staleTime: 1000 * 30,
   });
 }

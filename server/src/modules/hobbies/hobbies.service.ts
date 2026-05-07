@@ -1,4 +1,5 @@
 import { HobbyModel } from '../../models/Hobby.model';
+import { RoadmapModel, type RoadmapDoc } from '../../models/Roadmap.model';
 import { aiService } from '../ai/ai.service';
 import { ApiError } from '../../shared/utils/ApiError';
 
@@ -49,6 +50,10 @@ export const hobbiesService = {
 
   async findBySlug(slug: string): Promise<unknown | null> {
     return HobbyModel.findOne({ slug, isActive: true }).lean();
+  },
+
+  async getRoadmapForUser(userId: string, hobbyId: string): Promise<RoadmapDoc | null> {
+    return RoadmapModel.findOne({ userId, hobbyId }).lean() as Promise<RoadmapDoc | null>;
   },
 
   async createCustom(name: string): Promise<unknown> {

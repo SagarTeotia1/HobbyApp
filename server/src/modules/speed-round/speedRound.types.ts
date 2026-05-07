@@ -6,11 +6,6 @@ export interface SpeedRoundStartResponse {
   durationSeconds: number;
 }
 
-export interface SpeedRoundResultPayload {
-  sessionId: string;
-  answers: { questionId: string; selectedIndex: number; timeMs: number }[];
-}
-
 export interface SpeedRoundResultResponse {
   correctCount: number;
   xpGained: number;

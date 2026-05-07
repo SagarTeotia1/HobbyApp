@@ -7,7 +7,7 @@ import type { QuizQuestion } from '../../../../shared/types/card.types';
 
 export interface SpeedQuestionProps {
   question: QuizQuestion;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (selectedIndex: number) => void;
 }
 
 export function SpeedQuestion({ question, onAnswer }: SpeedQuestionProps) {
@@ -16,7 +16,7 @@ export function SpeedQuestion({ question, onAnswer }: SpeedQuestionProps) {
   const handleSelect = (i: number) => {
     if (selected !== null) return;
     setSelected(i);
-    onAnswer(i === question.correctIndex);
+    onAnswer(i);
   };
 
   return (

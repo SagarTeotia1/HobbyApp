@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import { geminiClient } from '../../infrastructure/ai/gemini.client';
 import { groqClient } from '../../infrastructure/ai/groq.client';
 import { env } from '../../config/env';
@@ -5,10 +6,12 @@ import { HobbyModel } from '../../models/Hobby.model';
 import { buildHobbyValidationPrompt } from './prompts/hobbyValidation';
 import { buildRoadmapPrompt } from './prompts/roadmapGeneration';
 import { buildCardGenerationPrompt } from './prompts/cardGeneration';
+import { buildQuizGenerationPrompt } from './prompts/quizGeneration';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
 import type { AIHobbySuggestion } from './ai.types';
 import type { AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
-import type { DifficultyLevel, LearningCardType } from '../../shared/types/common.types';
+import type { DifficultyLevel, LearningCardType, QuizQuestion } from '../../shared/types/common.types';
+import { GAME_CONFIG } from '../../shared/constants/gameConfig';
 import { ApiError } from '../../shared/utils/ApiError';
 
 const SYSTEM_PROMPT_HOBBY = 'You are HobbyForge\'s onboarding assistant. Output strict JSON only.';
@@ -16,6 +19,7 @@ const SYSTEM_PROMPT_SIMPLIFY = 'You are HobbyForge\'s tutor. Simplify concepts f
 const SYSTEM_PROMPT_ROADMAP = 'You are HobbyForge\'s roadmap generator. Output strict JSON only.';
 const SYSTEM_PROMPT_CARD = 'You are HobbyForge\'s flashcard generator. Output strict JSON only.';
 const SYSTEM_PROMPT_CHAT = 'You are HobbyForge\'s AI tutor. Answer concisely (max 120 words) in plain prose.';
+const SYSTEM_PROMPT_SPEED_QUIZ = 'You are HobbyForge\'s speed-round quiz generator. Generate EASY, simple questions answerable in under 5 seconds. Use plain language. Avoid trick questions. Output strict JSON only.';
 
 type RoadmapStage = {
   order: number;
@@ -127,6 +131,54 @@ export const aiService = {
       tags: card.tags,
       estimatedReadSeconds: 30,
       generatedAt: new Date(),
+    }));
+  },
+
+  async generateSpeedRoundQuestions(input: {
+    hobby: string;
+    hobbyId: string;
+    level: DifficultyLevel;
+    conceptIds: string[];
+    count: number;
+  }): Promise<QuizQuestion[]> {
+    type RawQuestion = {
+      question: string;
+      options: [string, string, string, string];
+      correctIndex: 0 | 1 | 2 | 3;
+      explanation: string;
+      xpReward?: number;
+    };
+
+    const userPrompt = buildQuizGenerationPrompt({
+      hobby: input.hobby,
+      level: 'beginner',
+      conceptIds: input.conceptIds,
+      count: input.count,
+    });
+
+    let rawList: RawQuestion[];
+    try {
+      rawList = await generateJSONWithProviders<RawQuestion[]>(SYSTEM_PROMPT_SPEED_QUIZ, userPrompt);
+    } catch {
+      rawList = input.conceptIds.slice(0, input.count).map((cid) => ({
+        question: `What is a key idea in "${cid.replace(/_/g, ' ')}"?`,
+        options: ['Foundation concept', 'Advanced theory', 'Unrelated topic', 'Not applicable'] as [string, string, string, string],
+        correctIndex: 0 as const,
+        explanation: 'Foundation concepts are the building blocks.',
+        xpReward: GAME_CONFIG.SPEED_ROUND.XP_PER_CORRECT,
+      }));
+    }
+
+    return rawList.map((q) => ({
+      id: nanoid(),
+      cardId: input.hobbyId,
+      hobbyId: input.hobbyId,
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      explanation: q.explanation,
+      difficulty: 'beginner' as DifficultyLevel,
+      xpReward: q.xpReward ?? GAME_CONFIG.SPEED_ROUND.XP_PER_CORRECT,
     }));
   },
 

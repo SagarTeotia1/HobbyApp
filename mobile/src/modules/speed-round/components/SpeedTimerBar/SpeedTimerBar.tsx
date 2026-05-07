@@ -6,20 +6,18 @@ import { colors } from '../../../../app/theme';
 
 export interface SpeedTimerBarProps {
   durationSeconds: number;
-  onComplete: () => void;
+  timeLeft: number;
 }
 
-export function SpeedTimerBar({ durationSeconds, onComplete }: SpeedTimerBarProps) {
-  const progress = useSharedValue(1);
+export function SpeedTimerBar({ durationSeconds, timeLeft }: SpeedTimerBarProps) {
+  const progress = useSharedValue(timeLeft / durationSeconds);
 
   useEffect(() => {
-    progress.value = withTiming(0, {
-      duration: durationSeconds * 1000,
+    progress.value = withTiming(timeLeft / durationSeconds, {
+      duration: 900,
       easing: Easing.linear,
     });
-    const timer = setTimeout(onComplete, durationSeconds * 1000);
-    return () => clearTimeout(timer);
-  }, [durationSeconds, onComplete, progress]);
+  }, [timeLeft, durationSeconds, progress]);
 
   const animStyle = useAnimatedStyle(() => ({
     width: `${progress.value * 100}%`,

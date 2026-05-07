@@ -7,3 +7,5 @@ export const progressRouter = Router();
 
 progressRouter.use(authMiddleware);
 progressRouter.get('/summary', asyncHandler(progressController.getSummary));
+progressRouter.get('/session', asyncHandler(progressController.getSession));
+progressRouter.get('/dashboard', asyncHandler(progressController.getDashboard));

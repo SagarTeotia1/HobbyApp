@@ -11,6 +11,8 @@ export const queryKeys = {
   progress: {
     all: ['progress'] as const,
     summary: (hobbyId: string) => [...queryKeys.progress.all, 'summary', hobbyId] as const,
+    session: (sessionId: string) => [...queryKeys.progress.all, 'session', sessionId] as const,
+    dashboard: (hobbyId: string) => [...queryKeys.progress.all, 'dashboard', hobbyId] as const,
   },
   leaderboard: {
     all: ['leaderboard'] as const,

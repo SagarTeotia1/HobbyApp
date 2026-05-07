@@ -7,7 +7,7 @@ import type { BossQuestion as BossQuestionType } from '../../../../shared/types/
 
 export interface BossQuestionProps {
   question: BossQuestionType;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (selectedIndex: number) => void;
 }
 
 export function BossQuestion({ question, onAnswer }: BossQuestionProps) {
@@ -16,7 +16,7 @@ export function BossQuestion({ question, onAnswer }: BossQuestionProps) {
   const handleSelect = (i: number) => {
     if (selected !== null) return;
     setSelected(i);
-    onAnswer(i === question.correctIndex);
+    onAnswer(i);
   };
 
   return (

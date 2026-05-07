@@ -7,10 +7,11 @@ import { buildHobbyValidationPrompt } from './prompts/hobbyValidation';
 import { buildRoadmapPrompt } from './prompts/roadmapGeneration';
 import { buildCardGenerationPrompt } from './prompts/cardGeneration';
 import { buildQuizGenerationPrompt } from './prompts/quizGeneration';
+import { buildBossGenerationPrompt } from './prompts/bossGeneration';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
 import type { AIHobbySuggestion } from './ai.types';
 import type { AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
-import type { DifficultyLevel, LearningCardType, QuizQuestion } from '../../shared/types/common.types';
+import type { DifficultyLevel, LearningCardType, QuizQuestion, BossQuestion } from '../../shared/types/common.types';
 import { GAME_CONFIG } from '../../shared/constants/gameConfig';
 import { ApiError } from '../../shared/utils/ApiError';
 
@@ -20,6 +21,7 @@ const SYSTEM_PROMPT_ROADMAP = 'You are HobbyForge\'s roadmap generator. Output s
 const SYSTEM_PROMPT_CARD = 'You are HobbyForge\'s flashcard generator. Output strict JSON only.';
 const SYSTEM_PROMPT_CHAT = 'You are HobbyForge\'s AI tutor. Answer concisely (max 120 words) in plain prose.';
 const SYSTEM_PROMPT_SPEED_QUIZ = 'You are HobbyForge\'s speed-round quiz generator. Generate EASY, simple questions answerable in under 5 seconds. Use plain language. Avoid trick questions. Output strict JSON only.';
+const SYSTEM_PROMPT_BOSS_QUIZ = 'You are HobbyForge\'s boss-round quiz generator. Generate HARD questions requiring synthesis, edge cases, and applied scenarios. Output strict JSON only.';
 
 type RoadmapStage = {
   order: number;
@@ -179,6 +181,60 @@ export const aiService = {
       explanation: q.explanation,
       difficulty: 'beginner' as DifficultyLevel,
       xpReward: q.xpReward ?? GAME_CONFIG.SPEED_ROUND.XP_PER_CORRECT,
+    }));
+  },
+
+  async generateBossRoundQuestions(input: {
+    hobby: string;
+    hobbyId: string;
+    level: DifficultyLevel;
+    conceptIds: string[];
+    count: number;
+  }): Promise<BossQuestion[]> {
+    type RawBossQuestion = {
+      question: string;
+      options: [string, string, string, string];
+      correctIndex: 0 | 1 | 2 | 3;
+      explanation: string;
+      xpReward?: number;
+      xpPenalty?: number;
+      timeLimit?: number;
+    };
+
+    const userPrompt = buildBossGenerationPrompt({
+      hobby: input.hobby,
+      level: input.level,
+      conceptIds: input.conceptIds,
+      count: input.count,
+    });
+
+    let rawList: RawBossQuestion[];
+    try {
+      rawList = await generateJSONWithProviders<RawBossQuestion[]>(SYSTEM_PROMPT_BOSS_QUIZ, userPrompt);
+    } catch {
+      rawList = input.conceptIds.slice(0, input.count).map((cid) => ({
+        question: `Advanced question about "${cid.replace(/_/g, ' ')}" — which statement is most accurate?`,
+        options: ['Correct synthesis', 'Common misconception', 'Partial truth', 'Unrelated fact'] as [string, string, string, string],
+        correctIndex: 0 as const,
+        explanation: 'Synthesizing concepts correctly is the key skill.',
+        xpReward: GAME_CONFIG.BOSS_ROUND.XP_PER_CORRECT,
+        xpPenalty: GAME_CONFIG.BOSS_ROUND.XP_PENALTY_PER_WRONG,
+        timeLimit: GAME_CONFIG.BOSS_ROUND.DURATION_SECONDS,
+      }));
+    }
+
+    return rawList.map((q) => ({
+      id: nanoid(),
+      cardId: input.hobbyId,
+      hobbyId: input.hobbyId,
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      explanation: q.explanation,
+      difficulty: input.level,
+      xpReward: q.xpReward ?? GAME_CONFIG.BOSS_ROUND.XP_PER_CORRECT,
+      xpPenalty: q.xpPenalty ?? GAME_CONFIG.BOSS_ROUND.XP_PENALTY_PER_WRONG,
+      timeLimitSeconds: q.timeLimit ?? GAME_CONFIG.BOSS_ROUND.DURATION_SECONDS,
     }));
   },
 

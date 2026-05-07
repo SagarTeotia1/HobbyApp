@@ -23,9 +23,9 @@ Output STRICT JSON array. Each item:
   "options": string[] (exactly 4),
   "correctIndex": number (0-3),
   "explanation": string (max 240 chars),
-  "xpReward": 5,
-  "xpPenalty": 2,
-  "timeLimit": 15
+  "xpReward": 10,
+  "xpPenalty": 15,
+  "timeLimit": 60
 }
 
 No prose. No markdown. Only JSON.`;

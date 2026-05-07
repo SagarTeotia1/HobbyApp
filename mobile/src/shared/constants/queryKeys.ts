@@ -8,6 +8,11 @@ export const queryKeys = {
     all: ['feed'] as const,
     forHobby: (hobbyId: string) => [...queryKeys.feed.all, 'hobby', hobbyId] as const,
   },
+  curriculum: {
+    all: ['curriculum'] as const,
+    topic: (hobbyId: string, topicId: string) =>
+      ['curriculum', 'topic', hobbyId, topicId] as const,
+  },
   progress: {
     all: ['progress'] as const,
     summary: (hobbyId: string) => [...queryKeys.progress.all, 'summary', hobbyId] as const,

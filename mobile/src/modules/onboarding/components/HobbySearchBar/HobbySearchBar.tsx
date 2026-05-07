@@ -6,6 +6,7 @@ import { colors } from '../../../../app/theme';
 export interface HobbySearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
+  isSearching?: boolean;
 }
 
 export function HobbySearchBar({ onSearch, isSearching = false, placeholder }: HobbySearchBarProps) {

@@ -1,0 +1,61 @@
+import { StyleSheet } from 'react-native';
+import { colors, radius } from '../../../../app/theme';
+
+export const styles = StyleSheet.create({
+  fab: {
+    position: 'absolute',
+    bottom: 32,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 4, height: 4 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 8,
+    zIndex: 100,
+  },
+  fabPressed: {
+    transform: [{ translateX: 4 }, { translateY: 4 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  fabEmoji: {
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.bgElevated,
+    borderTopWidth: 3,
+    borderTopColor: colors.border,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '75%',
+    zIndex: 200,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.borderLight,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    zIndex: 150,
+  },
+});

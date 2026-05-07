@@ -32,6 +32,8 @@ const envSchema = z.object({
   AI_PROVIDER: z.enum(['groq', 'gemini']).default('groq'),
   AI_FALLBACK_PROVIDER: z.enum(['groq', 'gemini']).default('gemini'),
 
+  CURRICULUM_URL: z.string().url().optional(),
+
   CORS_ORIGIN: z.string().default('*'),
   CLIENT_URL: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),

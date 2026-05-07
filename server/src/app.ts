@@ -13,6 +13,7 @@ import { leaderboardRouter } from './modules/leaderboard/leaderboard.router';
 import { aiRouter } from './modules/ai/ai.router';
 import { hobbiesRouter } from './modules/hobbies/hobbies.router';
 import { profileRouter } from './modules/profile/profile.router';
+import { curriculumRouter } from './modules/curriculum/curriculum.router';
 
 export function createApp(): Application {
   const app = express();
@@ -34,6 +35,7 @@ export function createApp(): Application {
   app.use('/api/v1/ai', aiRouter);
   app.use('/api/v1/hobbies', hobbiesRouter);
   app.use('/api/v1/profile', profileRouter);
+  app.use('/api/v1/curriculum', curriculumRouter);
 
   app.use((_req, res) => {
     ApiResponse.error(res, 404, 'NOT_FOUND', 'Route not found');

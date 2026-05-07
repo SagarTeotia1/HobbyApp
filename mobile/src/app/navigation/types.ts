@@ -12,20 +12,16 @@ export type OnboardingStackParamList = {
   };
 };
 
-export type FeedStackParamList = {
-  [ROUTES.FEED_LEARNING]: undefined;
-  [ROUTES.FEED_PROGRESS]: undefined;
-};
-
-export type MainTabParamList = {
-  [ROUTES.TAB_FEED]: NavigatorScreenParams<FeedStackParamList>;
-  [ROUTES.TAB_DASHBOARD]: undefined;
-  [ROUTES.TAB_PROFILE]: undefined;
+export type AppStackParamList = {
+  [ROUTES.ROADMAP]: undefined;
+  [ROUTES.FEED]: { hobbyId: string; topicId: string; topicName: string };
+  [ROUTES.PROGRESS]: { hobbyId: string; videosWatched: number; xpEarned: number };
+  [ROUTES.DASHBOARD]: undefined;
 };
 
 export type RootStackParamList = {
   [ROUTES.ONBOARDING]: NavigatorScreenParams<OnboardingStackParamList>;
-  [ROUTES.MAIN]: NavigatorScreenParams<MainTabParamList>;
+  [ROUTES.APP]: NavigatorScreenParams<AppStackParamList>;
 };
 
 declare global {

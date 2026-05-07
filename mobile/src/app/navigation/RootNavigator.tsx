@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingNavigator } from './OnboardingNavigator';
-import { MainNavigator } from './MainNavigator';
+import { AppNavigator } from './AppNavigator';
 import { ROUTES } from './routes';
 import { useUserStore } from '../store/rootStore';
 import { colors } from '../theme';
@@ -34,7 +34,7 @@ export function RootNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isOnboarded ? (
-          <Stack.Screen name={ROUTES.MAIN} component={MainNavigator} />
+          <Stack.Screen name={ROUTES.APP} component={AppNavigator} />
         ) : (
           <Stack.Screen name={ROUTES.ONBOARDING} component={OnboardingNavigator} />
         )}

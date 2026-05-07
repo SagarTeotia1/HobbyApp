@@ -23,6 +23,13 @@ export const simplifyCardSchema = z.object({
   hobbyId: z.string().min(1),
 });
 
+export const aiChatActionSchema = z.object({
+  intent: z.string().min(1),
+  payload: z.record(z.unknown()).default({}),
+  userId: z.string().min(1),
+});
+
 export type AIChatInput = z.infer<typeof aiChatSchema>;
 export type HobbySuggestInput = z.infer<typeof hobbySuggestSchema>;
 export type SimplifyCardInput = z.infer<typeof simplifyCardSchema>;
+export type AIChatActionInput = z.infer<typeof aiChatActionSchema>;

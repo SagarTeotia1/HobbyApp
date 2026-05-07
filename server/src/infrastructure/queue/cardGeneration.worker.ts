@@ -5,6 +5,39 @@ import { QUEUE_NAMES, type CardGenerationJobData } from './cardGeneration.queue'
 import { HobbyModel } from '../../models/Hobby.model';
 import { aiService } from '../../modules/ai/ai.service';
 import { CardModel } from '../../models/Card.model';
+import type { DifficultyLevel, LearningCardType } from '../../shared/types/common.types';
+
+function buildFallbackCards(params: {
+  hobbyId: string;
+  hobbyName: string;
+  difficulty: DifficultyLevel;
+  conceptId: string;
+  count: number;
+}): Array<{
+  hobbyId: string;
+  type: LearningCardType;
+  difficulty: DifficultyLevel;
+  conceptId: string;
+  title: string;
+  frontContent: string;
+  backContent: string;
+  tags: string[];
+  estimatedReadSeconds: number;
+  generatedAt: Date;
+}> {
+  return Array.from({ length: params.count }).map((_, index) => ({
+    hobbyId: params.hobbyId,
+    type: 'concept' as const,
+    difficulty: params.difficulty,
+    conceptId: params.conceptId,
+    title: `${params.hobbyName} Micro Lesson ${index + 1}`,
+    frontContent: `Core ${params.hobbyName} idea #${index + 1}.`,
+    backContent: `Practical ${params.hobbyName} tip #${index + 1}.`,
+    tags: [params.hobbyId, 'fallback'],
+    estimatedReadSeconds: 30,
+    generatedAt: new Date(),
+  }));
+}
 
 export const cardGenerationWorker = new Worker<CardGenerationJobData>(
   QUEUE_NAMES.CARD_GENERATION,
@@ -17,15 +50,48 @@ export const cardGenerationWorker = new Worker<CardGenerationJobData>(
     }
 
     const conceptId = job.data.conceptHints?.[0] ?? 'next-concept';
-    const cards = await aiService.generateCards({
-      hobby: hobby.name,
+    let cards: Array<{
+      hobbyId: string;
+      type: LearningCardType;
+      difficulty: DifficultyLevel;
+      conceptId: string;
+      title: string;
+      frontContent: string;
+      backContent: string;
+      tags: string[];
+      estimatedReadSeconds: number;
+      generatedAt: Date;
+    }> = buildFallbackCards({
       hobbyId: hobby.slug,
-      level: job.data.difficulty,
+      hobbyName: hobby.name,
+      difficulty: job.data.difficulty,
       conceptId,
       count: job.data.batchSize,
-      previousCards: [],
-      userWeaknesses: [],
     });
+    try {
+      cards = await aiService.generateCards({
+        hobby: hobby.name,
+        hobbyId: hobby.slug,
+        level: job.data.difficulty,
+        conceptId,
+        count: job.data.batchSize,
+        previousCards: [],
+        userWeaknesses: [],
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('429') || message.includes('quota')) {
+        logger.warn('[worker:card-generation] Gemini quota hit, using fallback cards', {
+          jobId: job.id,
+          hobbyId: hobby.slug,
+        });
+      } else {
+        logger.warn('[worker:card-generation] Gemini generation failed, using fallback cards', {
+          jobId: job.id,
+          hobbyId: hobby.slug,
+        });
+      }
+    }
 
     await CardModel.insertMany(
       cards.map((card) => ({

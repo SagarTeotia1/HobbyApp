@@ -16,7 +16,7 @@ export interface CardGenerationJobData {
 export const cardGenerationQueue = new Queue<CardGenerationJobData>(QUEUE_NAMES.CARD_GENERATION, {
   connection: redis,
   defaultJobOptions: {
-    attempts: 3,
+    attempts: 1,
     backoff: { type: 'exponential', delay: 2_000 },
     removeOnComplete: { age: 60 * 60, count: 1000 },
     removeOnFail: { age: 60 * 60 * 24 },

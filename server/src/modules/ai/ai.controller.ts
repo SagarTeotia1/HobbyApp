@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { ApiResponse } from '../../shared/utils/ApiResponse';
 import { ApiError } from '../../shared/utils/ApiError';
-import { aiChatSchema, hobbySuggestSchema, simplifyCardSchema } from './ai.validator';
+import { aiChatActionSchema, aiChatSchema, hobbySuggestSchema, simplifyCardSchema } from './ai.validator';
 import { aiService } from './ai.service';
 
 export const aiController = {
@@ -38,5 +38,13 @@ export const aiController = {
     } finally {
       res.end();
     }
+  },
+
+  async chatAction(req: Request, res: Response): Promise<Response> {
+    if (!req.user) throw ApiError.unauthorized();
+    const input = aiChatActionSchema.parse(req.body);
+    if (input.userId !== req.user.uuid) throw ApiError.forbidden('userId mismatch');
+    const data = await aiService.chatAction(input);
+    return ApiResponse.ok(res, data);
   },
 };

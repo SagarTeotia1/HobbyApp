@@ -8,5 +8,10 @@ export interface FeedQuery {
 
 export interface FeedResponse {
   cards: LearningCard[];
-  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export interface SignalResponse {
+  xpDelta: number;
+  newXPTotal: number;
 }

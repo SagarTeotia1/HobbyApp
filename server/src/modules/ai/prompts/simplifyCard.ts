@@ -4,7 +4,7 @@ export interface SimplifyCardPromptParams {
   userLevel: string;
 }
 
-export const buildSimplifyCardPrompt = ({
+export const buildSimplifyPrompt = ({
   hobby,
   originalContent,
   userLevel,
@@ -18,3 +18,5 @@ Output STRICT JSON:
 }
 
 No prose. No markdown. Only JSON.`;
+
+export const buildSimplifyCardPrompt = buildSimplifyPrompt;

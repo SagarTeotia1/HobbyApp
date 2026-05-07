@@ -6,7 +6,6 @@ import { HobbyModel } from '../../models/Hobby.model';
 import { RoadmapModel } from '../../models/Roadmap.model';
 import { CardModel } from '../../models/Card.model';
 import { aiService } from '../ai/ai.service';
-import { cardGenerationQueue } from '../../infrastructure/queue/cardGeneration.queue';
 import { ApiError } from '../../shared/utils/ApiError';
 import type { CompleteOnboardingPayload, CompleteOnboardingResponse, OnboardingInitResponse } from './onboarding.types';
 
@@ -68,16 +67,8 @@ export const onboardingService = {
     const hobby = await HobbyModel.findOne({ slug: payload.hobbySlug, isActive: true }).lean();
     if (!hobby) throw ApiError.badRequest('Invalid hobby');
 
-    let stages = buildFallbackRoadmap(hobby.slug);
-    try {
-      stages = await aiService.generateRoadmap({
-        hobby: hobby.name,
-        level: payload.skillLevel,
-        dailyMinutes: payload.dailyMinutes,
-      });
-    } catch {
-      // Keep onboarding resilient even if Gemini is unavailable.
-    }
+    // Keep roadmap deterministic/local to avoid extra Gemini calls during onboarding.
+    const stages = buildFallbackRoadmap(hobby.slug);
 
     const roadmapDoc = await RoadmapModel.findOneAndUpdate(
       { userId, hobbyId: hobby.slug },
@@ -142,13 +133,7 @@ export const onboardingService = {
       },
     );
 
-    await cardGenerationQueue.add('onboarding-prefetch', {
-      userId,
-      hobbyId: hobby.slug,
-      difficulty: payload.skillLevel,
-      batchSize: 10,
-      conceptHints: roadmapDoc.stages.slice(1, 4).map((stage) => stage.conceptId),
-    });
+    // Do not enqueue onboarding prefetch immediately to avoid extra AI requests on free tier.
 
     return {
       roadmap: {
@@ -174,7 +159,7 @@ export const onboardingService = {
         backContent: card.backContent,
         tags: card.tags,
         estimatedReadSeconds: card.estimatedReadSeconds,
-        generatedAt: card.generatedAt.toISOString(),
+        generatedAt: (card.createdAt ?? new Date()).toISOString(),
       })),
     };
   },

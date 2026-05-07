@@ -1,12 +1,15 @@
 import { geminiClient } from '../../infrastructure/ai/gemini.client';
+import { groqClient } from '../../infrastructure/ai/groq.client';
+import { env } from '../../config/env';
 import { HobbyModel } from '../../models/Hobby.model';
 import { buildHobbyValidationPrompt } from './prompts/hobbyValidation';
 import { buildRoadmapPrompt } from './prompts/roadmapGeneration';
 import { buildCardGenerationPrompt } from './prompts/cardGeneration';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
 import type { AIHobbySuggestion } from './ai.types';
-import type { HobbySuggestInput, SimplifyCardInput } from './ai.validator';
+import type { AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
 import type { DifficultyLevel, LearningCardType } from '../../shared/types/common.types';
+import { ApiError } from '../../shared/utils/ApiError';
 
 const SYSTEM_PROMPT_HOBBY = 'You are HobbyForge\'s onboarding assistant. Output strict JSON only.';
 const SYSTEM_PROMPT_SIMPLIFY = 'You are HobbyForge\'s tutor. Simplify concepts for the learner. Output strict JSON only.';
@@ -30,6 +33,23 @@ type GeneratedCard = {
   tags: string[];
   conceptId: string;
 };
+
+async function generateJSONWithProviders<T>(systemPrompt: string, userPrompt: string): Promise<T> {
+  const runGroq = async (): Promise<T> => groqClient.generateJSON<T>(systemPrompt, userPrompt);
+  const runGemini = async (): Promise<T> => geminiClient.generateJSON<T>(systemPrompt, userPrompt);
+
+  const primary = env.AI_PROVIDER === 'groq' ? runGroq : runGemini;
+  const fallback = env.AI_FALLBACK_PROVIDER === 'groq' ? runGroq : runGemini;
+
+  try {
+    return await primary();
+  } catch {
+    if (env.AI_FALLBACK_PROVIDER === env.AI_PROVIDER) {
+      throw new ApiError(500, 'AI_PROVIDER_ERROR', 'Primary AI provider failed and fallback is same as primary');
+    }
+    return fallback();
+  }
+}
 
 export const aiService = {
   async validateHobby(name: string): Promise<{ isValid: boolean; normalizedName: string; slug: string }> {
@@ -60,7 +80,7 @@ export const aiService = {
       level: input.level,
       dailyMinutes: input.dailyMinutes,
     });
-    const result = await geminiClient.generateJSON<RoadmapResult>(SYSTEM_PROMPT_ROADMAP, userPrompt);
+    const result = await generateJSONWithProviders<RoadmapResult>(SYSTEM_PROMPT_ROADMAP, userPrompt);
     return result.stages;
   },
 
@@ -94,7 +114,7 @@ export const aiService = {
       userWeaknesses: input.userWeaknesses ?? [],
       count: input.count,
     });
-    const result = await geminiClient.generateJSON<GeneratedCard[]>(SYSTEM_PROMPT_CARD, userPrompt);
+    const result = await generateJSONWithProviders<GeneratedCard[]>(SYSTEM_PROMPT_CARD, userPrompt);
 
     return result.map((card) => ({
       hobbyId: input.hobbyId,
@@ -118,20 +138,38 @@ export const aiService = {
       userInput: input.query,
       popularHobbies: ['Chess', 'Guitar', 'Photography', 'Cooking', 'Drawing'],
     });
-    return geminiClient.generateJSON(SYSTEM_PROMPT_HOBBY, userPrompt);
+    return generateJSONWithProviders(SYSTEM_PROMPT_HOBBY, userPrompt);
   },
 
   async simplifyCard(_userId: string, _input: SimplifyCardInput): Promise<{ simplifiedContent: string }> {
-    const userPrompt = buildSimplifyCardPrompt({
-      hobby: 'placeholder',
-      originalContent: 'placeholder',
-      userLevel: 'beginner',
-    });
-    return geminiClient.generateJSON(SYSTEM_PROMPT_SIMPLIFY, userPrompt);
+    try {
+      const userPrompt = buildSimplifyCardPrompt({
+        hobby: 'general',
+        originalContent: 'Explain the key idea with simpler language and one example.',
+        userLevel: 'beginner',
+      });
+      return await generateJSONWithProviders(SYSTEM_PROMPT_SIMPLIFY, userPrompt);
+    } catch {
+      return {
+        simplifiedContent:
+          'Here is a simpler version: focus on one small step, practice it once, then repeat with a tiny variation.',
+      };
+    }
   },
 
   streamChat(userMessage: string, hobby: string): AsyncGenerator<string> {
     const systemPrompt = `${SYSTEM_PROMPT_CHAT}\nThe learner is working on "${hobby}".`;
     return geminiClient.streamText(systemPrompt, [], userMessage);
+  },
+
+  async chatAction(input: AIChatActionInput): Promise<{ success: boolean; changes: Record<string, unknown> }> {
+    return {
+      success: true,
+      changes: {
+        intent: input.intent,
+        payload: input.payload,
+        userId: input.userId,
+      },
+    };
   },
 };

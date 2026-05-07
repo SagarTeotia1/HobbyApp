@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const feedQuerySchema = z.object({
   hobbyId: z.string().min(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),
-  cursor: z.string().optional(),
+  sessionId: z.string().min(1),
 });
 
 export const cardInteractionSchema = z.object({
@@ -12,7 +12,14 @@ export const cardInteractionSchema = z.object({
   interaction: z.enum(['understood', 'needs_review', 'needs_simpler', 'bookmarked', 'skipped']),
   responseTimeMs: z.number().int().min(0),
   sessionId: z.string().min(1),
+  timestamp: z.string().datetime().optional(),
+});
+
+export const simplifyCardSchema = z.object({
+  cardId: z.string().min(1),
+  hobbyId: z.string().min(1),
 });
 
 export type FeedQueryInput = z.infer<typeof feedQuerySchema>;
 export type CardInteractionInput = z.infer<typeof cardInteractionSchema>;
+export type SimplifyCardInput = z.infer<typeof simplifyCardSchema>;

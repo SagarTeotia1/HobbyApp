@@ -1,5 +1,7 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { z } from 'zod';
+
+dotenv.config({ override: true });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -22,8 +24,13 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
 
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
-  GEMINI_MODEL_FAST: z.string().default('gemini-2.0-flash'),
-  GEMINI_MODEL_PRO: z.string().default('gemini-2.0-flash'),
+  GEMINI_MODEL_FAST: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL_PRO: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL_FALLBACK: z.string().default('gemini-2.5-flash'),
+  GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
+  GROQ_MODEL_FAST: z.string().default('llama-3.1-8b-instant'),
+  AI_PROVIDER: z.enum(['groq', 'gemini']).default('groq'),
+  AI_FALLBACK_PROVIDER: z.enum(['groq', 'gemini']).default('gemini'),
 
   CORS_ORIGIN: z.string().default('*'),
   CLIENT_URL: z.preprocess(

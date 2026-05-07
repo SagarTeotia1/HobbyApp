@@ -6,5 +6,6 @@ import { learningFeedController } from './learningFeed.controller';
 export const learningFeedRouter = Router();
 
 learningFeedRouter.use(authMiddleware);
-learningFeedRouter.get('/', asyncHandler(learningFeedController.getFeed));
-learningFeedRouter.post('/interaction', asyncHandler(learningFeedController.recordInteraction));
+learningFeedRouter.get('/cards', asyncHandler(learningFeedController.getCards));
+learningFeedRouter.post('/signal', asyncHandler(learningFeedController.recordSignal));
+learningFeedRouter.post('/simplify', asyncHandler(learningFeedController.simplify));

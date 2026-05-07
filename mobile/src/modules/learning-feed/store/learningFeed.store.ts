@@ -4,22 +4,26 @@ import type { LearningCard } from '../../../shared/types/card.types';
 interface LearningFeedState {
   sessionId: string | null;
   cards: LearningCard[];
-  cursor: string | null;
-  cardsSeenInRound: number;
+  cardsSinceLastSpeed: number;
+  cardsSinceLastBoss: number;
+  lastRoundType: 'speed' | 'boss' | 'none';
 
   setSession: (id: string) => void;
   setCards: (cards: LearningCard[]) => void;
   appendCards: (cards: LearningCard[]) => void;
   popFront: () => LearningCard | undefined;
-  bumpRoundCount: () => void;
-  resetRoundCount: () => void;
+  recordCardSeen: () => void;
+  markRoundType: (round: 'speed' | 'boss') => void;
+  resetCounters: () => void;
+  resetAll: () => void;
 }
 
 export const useLearningFeedStore = create<LearningFeedState>((set, get) => ({
   sessionId: null,
   cards: [],
-  cursor: null,
-  cardsSeenInRound: 0,
+  cardsSinceLastSpeed: 0,
+  cardsSinceLastBoss: 0,
+  lastRoundType: 'none',
 
   setSession: (id) => set({ sessionId: id }),
   setCards: (cards) => set({ cards }),
@@ -29,6 +33,24 @@ export const useLearningFeedStore = create<LearningFeedState>((set, get) => ({
     set({ cards: rest });
     return first;
   },
-  bumpRoundCount: () => set({ cardsSeenInRound: get().cardsSeenInRound + 1 }),
-  resetRoundCount: () => set({ cardsSeenInRound: 0 }),
+  recordCardSeen: () =>
+    set({
+      cardsSinceLastSpeed: get().cardsSinceLastSpeed + 1,
+      cardsSinceLastBoss: get().cardsSinceLastBoss + 1,
+    }),
+  markRoundType: (round) =>
+    set({
+      lastRoundType: round,
+      cardsSinceLastSpeed: round === 'speed' ? 0 : get().cardsSinceLastSpeed,
+      cardsSinceLastBoss: round === 'boss' ? 0 : get().cardsSinceLastBoss,
+    }),
+  resetCounters: () => set({ cardsSinceLastSpeed: 0, cardsSinceLastBoss: 0, lastRoundType: 'none' }),
+  resetAll: () =>
+    set({
+      sessionId: null,
+      cards: [],
+      cardsSinceLastSpeed: 0,
+      cardsSinceLastBoss: 0,
+      lastRoundType: 'none',
+    }),
 }));

@@ -16,14 +16,14 @@ export function FeedNavigator() {
       <Stack.Screen
         name={ROUTES.FEED_SPEED_ROUND}
         component={SpeedRoundScreen}
-        options={{ animation: 'fade_from_bottom' }}
+        options={{ animation: 'slide_from_bottom' }}
       />
       <Stack.Screen
         name={ROUTES.FEED_BOSS_ROUND}
         component={BossRoundScreen}
-        options={{ animation: 'fade_from_bottom' }}
+        options={{ animation: 'slide_from_bottom' }}
       />
-      <Stack.Screen name={ROUTES.FEED_PROGRESS} component={ProgressScreen} />
+      <Stack.Screen name={ROUTES.FEED_PROGRESS} component={ProgressScreen} options={{ animation: 'fade' }} />
     </Stack.Navigator>
   );
 }

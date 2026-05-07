@@ -14,6 +14,7 @@ import { SwipeHints } from '../components/SwipeHints/SwipeHints';
 import { useSwipeActions } from '../hooks/useSwipeActions';
 import { useSessionRound } from '../hooks/useSessionRound';
 import { Button } from '../../../shared/components/ui/Button/Button';
+import { AIChatInterface } from '../../../shared/components/ai/AIChatInterface/AIChatInterface';
 import type { FeedStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
 
@@ -74,6 +75,12 @@ export function LearningFeedScreen() {
         {isLoading || isFetching ? <CardSkeleton /> : <SwipeDeck cards={deckCards} onSwipe={handleSwipe} />}
       </View>
       <SwipeHints />
+      <AIChatInterface
+        hobbyId={activeHobbyId}
+        collapsed
+        suggestions={['Explain this card', `Tips for ${hobbyId ?? 'this hobby'}`, 'Make it simpler']}
+        placeholder={`Ask about ${hobbyId ?? 'your hobby'}...`}
+      />
       {isError ? (
         <Typography variant="caption" color={colors.danger}>
           {error instanceof Error ? error.message : 'Failed to load cards'}

@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const aiChatSchema = z.object({
   message: z.string().min(1).max(1000),
   hobbyId: z.string().min(1),
+  level: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
+  currentScreen: z.string().default('unknown'),
+  weakConcepts: z.array(z.string()).default([]),
   history: z
     .array(
       z.object({

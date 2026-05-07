@@ -12,4 +12,5 @@ aiRouter.use(authMiddleware);
 aiRouter.use(rateLimiter({ max: 20, keyPrefix: 'ai-chat' }));
 aiRouter.post('/simplify', asyncHandler(aiController.simplifyCard));
 aiRouter.post('/chat', asyncHandler(aiController.chatStream));
+aiRouter.post('/chat/sync', asyncHandler(aiController.chatSync));
 aiRouter.post('/chat/action', asyncHandler(aiController.chatAction));

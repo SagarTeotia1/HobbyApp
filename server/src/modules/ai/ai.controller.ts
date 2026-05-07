@@ -28,7 +28,7 @@ export const aiController = {
     res.flushHeaders?.();
 
     try {
-      for await (const chunk of aiService.streamChat(input.message, input.hobbyId)) {
+      for await (const chunk of aiService.streamChat(input)) {
         res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
       }
       res.write(`data: [DONE]\n\n`);
@@ -38,6 +38,14 @@ export const aiController = {
     } finally {
       res.end();
     }
+  },
+
+  async chatSync(req: Request, res: Response): Promise<Response> {
+    if (!req.user) throw ApiError.unauthorized();
+    const input = aiChatSchema.parse(req.body);
+
+    const reply = await aiService.chatReply(input);
+    return ApiResponse.ok(res, { reply });
   },
 
   async chatAction(req: Request, res: Response): Promise<Response> {

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '../../../shared/components/ui/Typography/Typography';
 import { Button } from '../../../shared/components/ui/Button/Button';
 import { TimeOptionPill, type TimeOption } from '../components/TimeOptionPill/TimeOptionPill';
+import { AIChatInterface } from '../../../shared/components/ai/AIChatInterface/AIChatInterface';
 import { colors, spacing } from '../../../app/theme';
 import { useOnboardingStore } from '../store/onboarding.store';
 import type { OnboardingStackParamList } from '../../../app/navigation/types';
@@ -14,6 +15,8 @@ import { ROUTES } from '../../../app/navigation/routes';
 type Nav = NativeStackNavigationProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_TIME>;
 type ScreenRoute = RouteProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_TIME>;
 const TIME_OPTIONS: TimeOption[] = [5, 10, 15, 30, 60];
+
+const AI_SUGGESTIONS = ['Is 10 minutes enough to learn?', 'How should I pace myself?'];
 
 export function DailyTimeScreen() {
   const navigation = useNavigation<Nav>();
@@ -36,6 +39,12 @@ export function DailyTimeScreen() {
             />
           ))}
         </View>
+        <AIChatInterface
+          hobbyId={route.params.hobbySlug}
+          collapsed
+          suggestions={AI_SUGGESTIONS}
+          placeholder="Ask about learning pace..."
+        />
       </View>
       <Button
         label="Continue"

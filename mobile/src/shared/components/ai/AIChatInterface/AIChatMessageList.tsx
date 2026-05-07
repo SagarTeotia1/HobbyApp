@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { FlatList } from 'react-native';
+import { ScrollView } from 'react-native';
 import { AIChatBubble } from './AIChatBubble';
 import { AIChatTypingIndicator } from './AIChatTypingIndicator';
 import { aiChatStyles } from './AIChatInterface.styles';
@@ -11,7 +11,7 @@ export interface AIChatMessageListProps {
 }
 
 export function AIChatMessageList({ messages, isStreaming }: AIChatMessageListProps) {
-  const ref = useRef<FlatList>(null);
+  const ref = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -20,14 +20,15 @@ export function AIChatMessageList({ messages, isStreaming }: AIChatMessageListPr
   }, [messages.length, isStreaming]);
 
   return (
-    <FlatList
+    <ScrollView
       ref={ref}
-      data={messages}
-      keyExtractor={(m) => m.id}
       style={aiChatStyles.messageList}
       contentContainerStyle={aiChatStyles.messageListContent}
-      renderItem={({ item }) => <AIChatBubble role={item.role} content={item.content} />}
-      ListFooterComponent={isStreaming ? <AIChatTypingIndicator /> : null}
-    />
+      showsVerticalScrollIndicator={false}>
+      {messages.map((m) => (
+        <AIChatBubble key={m.id} role={m.role} content={m.content} />
+      ))}
+      {isStreaming ? <AIChatTypingIndicator /> : null}
+    </ScrollView>
   );
 }

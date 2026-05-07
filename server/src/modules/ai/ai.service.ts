@@ -9,8 +9,11 @@ import { buildCardGenerationPrompt } from './prompts/cardGeneration';
 import { buildQuizGenerationPrompt } from './prompts/quizGeneration';
 import { buildBossGenerationPrompt } from './prompts/bossGeneration';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
+import { buildChatSystemPrompt } from './prompts/chatSystem';
 import type { AIHobbySuggestion } from './ai.types';
-import type { AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
+import type { AIChatInput, AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
+import { UserModel } from '../../models/User.model';
+import { UserProgressModel } from '../../models/UserProgress.model';
 import type { DifficultyLevel, LearningCardType, QuizQuestion, BossQuestion } from '../../shared/types/common.types';
 import { GAME_CONFIG } from '../../shared/constants/gameConfig';
 import { ApiError } from '../../shared/utils/ApiError';
@@ -19,7 +22,6 @@ const SYSTEM_PROMPT_HOBBY = 'You are HobbyForge\'s onboarding assistant. Output 
 const SYSTEM_PROMPT_SIMPLIFY = 'You are HobbyForge\'s tutor. Simplify concepts for the learner. Output strict JSON only.';
 const SYSTEM_PROMPT_ROADMAP = 'You are HobbyForge\'s roadmap generator. Output strict JSON only.';
 const SYSTEM_PROMPT_CARD = 'You are HobbyForge\'s flashcard generator. Output strict JSON only.';
-const SYSTEM_PROMPT_CHAT = 'You are HobbyForge\'s AI tutor. Answer concisely (max 120 words) in plain prose.';
 const SYSTEM_PROMPT_SPEED_QUIZ = 'You are HobbyForge\'s speed-round quiz generator. Generate EASY, simple questions answerable in under 5 seconds. Use plain language. Avoid trick questions. Output strict JSON only.';
 const SYSTEM_PROMPT_BOSS_QUIZ = 'You are HobbyForge\'s boss-round quiz generator. Generate HARD questions requiring synthesis, edge cases, and applied scenarios. Output strict JSON only.';
 
@@ -265,19 +267,82 @@ export const aiService = {
     }
   },
 
-  streamChat(userMessage: string, hobby: string): AsyncGenerator<string> {
-    const systemPrompt = `${SYSTEM_PROMPT_CHAT}\nThe learner is working on "${hobby}".`;
-    return geminiClient.streamText(systemPrompt, [], userMessage);
+  streamChat(input: AIChatInput): AsyncGenerator<string> {
+    const systemPrompt = buildChatSystemPrompt({
+      hobby: input.hobbyId,
+      level: input.level,
+      currentScreen: input.currentScreen,
+      weakConceptTitles: input.weakConcepts,
+    });
+    const history = input.history.map((m) => ({
+      role: (m.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
+      parts: [{ text: m.content }] as [{ text: string }],
+    }));
+    return geminiClient.streamText(systemPrompt, history, input.message);
   },
 
-  async chatAction(input: AIChatActionInput): Promise<{ success: boolean; changes: Record<string, unknown> }> {
-    return {
-      success: true,
-      changes: {
-        intent: input.intent,
-        payload: input.payload,
-        userId: input.userId,
-      },
-    };
+  async chatReply(input: AIChatInput): Promise<string> {
+    const systemPrompt = buildChatSystemPrompt({
+      hobby: input.hobbyId,
+      level: input.level,
+      currentScreen: input.currentScreen,
+      weakConceptTitles: input.weakConcepts,
+    });
+
+    if (env.AI_PROVIDER === 'groq') {
+      return groqClient.generateText(systemPrompt, input.history, input.message);
+    }
+
+    let reply = '';
+    const geminiHistory = input.history.map((m) => ({
+      role: (m.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
+      parts: [{ text: m.content }] as [{ text: string }],
+    }));
+    for await (const chunk of geminiClient.streamText(systemPrompt, geminiHistory, input.message)) {
+      reply += chunk;
+    }
+    return reply;
+  },
+
+  async chatAction(
+    input: AIChatActionInput,
+  ): Promise<{ success: boolean; changes: Record<string, unknown> }> {
+    const DIFFICULTY_ORDER: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
+
+    switch (input.intent) {
+      case 'change_hobby': {
+        const newHobbyId = typeof input.payload['hobbyId'] === 'string' ? input.payload['hobbyId'] : null;
+        if (!newHobbyId) throw new ApiError(400, 'INVALID_PAYLOAD', 'change_hobby requires payload.hobbyId');
+        await UserModel.updateOne({ uuid: input.userId }, { currentHobbyId: newHobbyId });
+        return { success: true, changes: { intent: 'change_hobby', hobbyId: newHobbyId } };
+      }
+
+      case 'make_harder':
+      case 'make_easier': {
+        const user = await UserModel.findOne({ uuid: input.userId }).lean();
+        if (!user?.currentHobbyId) throw new ApiError(404, 'USER_NOT_FOUND', 'User has no active hobby');
+        const progress = await UserProgressModel.findOne({ userId: input.userId, hobbyId: user.currentHobbyId }).lean();
+        const current = (progress?.currentDifficulty ?? 'beginner') as DifficultyLevel;
+        const idx = DIFFICULTY_ORDER.indexOf(current);
+        const nextIdx = input.intent === 'make_harder'
+          ? Math.min(idx + 1, DIFFICULTY_ORDER.length - 1)
+          : Math.max(idx - 1, 0);
+        const newDifficulty = DIFFICULTY_ORDER[nextIdx];
+        await UserProgressModel.updateOne(
+          { userId: input.userId, hobbyId: user.currentHobbyId },
+          { currentDifficulty: newDifficulty },
+          { upsert: true },
+        );
+        return { success: true, changes: { intent: input.intent, difficulty: newDifficulty } };
+      }
+
+      case 'focus_topic': {
+        const topic = typeof input.payload['topic'] === 'string' ? input.payload['topic'] : '';
+        return { success: true, changes: { intent: 'focus_topic', topic } };
+      }
+
+      default:
+        return { success: true, changes: { intent: input.intent } };
+    }
   },
 };

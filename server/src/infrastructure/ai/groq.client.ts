@@ -7,6 +7,24 @@ const groq = new Groq({
 });
 
 export const groqClient = {
+  async generateText(
+    systemPrompt: string,
+    history: Array<{ role: 'user' | 'assistant'; content: string }>,
+    userMessage: string,
+  ): Promise<string> {
+    const completion = await groq.chat.completions.create({
+      model: env.GROQ_MODEL_FAST,
+      temperature: 0.9,
+      max_tokens: 512,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...history.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user', content: userMessage },
+      ],
+    });
+    return completion.choices[0]?.message?.content ?? '';
+  },
+
   async generateJSON<T>(systemPrompt: string, userPrompt: string): Promise<T> {
     const completion = await groq.chat.completions.create({
       model: env.GROQ_MODEL_FAST,

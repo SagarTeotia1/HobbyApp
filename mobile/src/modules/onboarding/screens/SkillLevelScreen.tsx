@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '../../../shared/components/ui/Typography/Typography';
 import { Button } from '../../../shared/components/ui/Button/Button';
 import { SkillLevelCard } from '../components/SkillLevelCard/SkillLevelCard';
+import { AIChatInterface } from '../../../shared/components/ai/AIChatInterface/AIChatInterface';
 import { colors, spacing } from '../../../app/theme';
 import { useOnboardingStore } from '../store/onboarding.store';
 import { ROUTES } from '../../../app/navigation/routes';
@@ -15,6 +16,8 @@ import type { DifficultyLevel } from '../../../shared/types/card.types';
 type Nav = NativeStackNavigationProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_LEVEL>;
 type ScreenRoute = RouteProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_LEVEL>;
 const LEVELS: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
+
+const AI_SUGGESTIONS = ['Am I a beginner or intermediate?', 'What level should I pick?'];
 
 export function SkillLevelScreen() {
   const navigation = useNavigation<Nav>();
@@ -37,6 +40,12 @@ export function SkillLevelScreen() {
             />
           ))}
         </View>
+        <AIChatInterface
+          hobbyId={route.params.hobbySlug}
+          collapsed
+          suggestions={AI_SUGGESTIONS}
+          placeholder="Ask about skill levels..."
+        />
       </View>
       <Button
         label="Build my plan"

@@ -99,6 +99,7 @@ export function DashboardScreen() {
 
         <View style={styles.chatWrapper}>
           <AIChatInterface
+            hobbyId={hobbyId ?? 'general'}
             collapsed
             suggestions={aiSuggestions}
             placeholder={`Ask about ${hobbyName}...`}

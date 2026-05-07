@@ -5,29 +5,29 @@ import { AIChatInput } from './AIChatInput';
 import { AIChatSuggestions } from './AIChatSuggestions';
 import { AIChatMessageList } from './AIChatMessageList';
 import { aiChatStyles } from './AIChatInterface.styles';
-import { useAIStore } from '../../../../modules/ai/store/ai.store';
+import { useAIChat } from '../../../../modules/ai/hooks/useAIChat';
 
 export interface AIChatInterfaceProps {
+  hobbyId: string;
   suggestions?: string[];
   collapsed?: boolean;
   placeholder?: string;
 }
 
 export function AIChatInterface({
+  hobbyId,
   suggestions = [],
   collapsed = false,
   placeholder,
 }: AIChatInterfaceProps) {
   const [input, setInput] = useState('');
-  const isOpen = useAIStore((s) => s.isOpen);
-  const isStreaming = useAIStore((s) => s.isStreaming);
-  const messages = useAIStore((s) => s.messages);
-  const open = useAIStore((s) => s.open);
+  const { isOpen, messages, isStreaming, open, send } = useAIChat(hobbyId);
 
   const handleSubmit = () => {
-    if (!input.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed) return;
     setInput('');
-    // AI send handled by useAIChat hook in parent
+    void send(trimmed);
   };
 
   const handleSuggestionPick = (text: string) => {

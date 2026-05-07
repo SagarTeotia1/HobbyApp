@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { View, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { Typography } from '../../../../shared/components/ui/Typography/Typography';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { hobbySearchBarStyles as styles } from './HobbySearchBar.styles';
 import { colors } from '../../../../app/theme';
 
 export interface HobbySearchBarProps {
   onSearch: (query: string) => void;
-  isSearching?: boolean;
   placeholder?: string;
 }
 
 export function HobbySearchBar({ onSearch, isSearching = false, placeholder }: HobbySearchBarProps) {
   const [text, setText] = useState('');
+  const [focused, setFocused] = useState(false);
 
   const handleSubmit = () => {
     const trimmed = text.trim();
@@ -20,9 +19,12 @@ export function HobbySearchBar({ onSearch, isSearching = false, placeholder }: H
     setText('');
   };
 
+  const canSubmit = !!text.trim() && !isSearching;
+
   return (
-    <View>
-      <View style={styles.inputRow}>
+    <View style={styles.wrapper}>
+      <View style={[styles.inputRow, focused && styles.inputRowFocused]}>
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.input}
           value={text}
@@ -31,21 +33,21 @@ export function HobbySearchBar({ onSearch, isSearching = false, placeholder }: H
           placeholderTextColor={colors.textDim}
           returnKeyType="search"
           onSubmitEditing={handleSubmit}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
         <Pressable
           onPress={handleSubmit}
-          disabled={!text.trim() || isSearching}
-          style={[styles.sendBtn, (!text.trim() || isSearching) && styles.sendBtnDisabled]}>
+          disabled={!canSubmit}
+          style={[styles.sendBtn, !canSubmit && styles.sendBtnDisabled]}>
           {isSearching ? (
-            <ActivityIndicator size="small" color={colors.bg} />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
-            <Typography variant="caption" color={colors.bg}>→</Typography>
+            <Text style={[styles.sendArrow, !canSubmit && styles.sendArrowDisabled]}>→</Text>
           )}
         </Pressable>
       </View>
-      <Typography variant="caption" muted style={styles.hint}>
-        AI will find the best match for you
-      </Typography>
+      <Text style={styles.hint}>AI will find the best match for any hobby you type</Text>
     </View>
   );
 }

@@ -66,11 +66,13 @@ export const onboardingService = {
   ): Promise<CompleteOnboardingResponse> {
     let hobby = await HobbyModel.findOne({ slug: payload.hobbySlug }).lean();
     if (!hobby) {
-      const name = payload.hobbySlug
-        .split(/[-_\s]+/)
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-      hobby = await HobbyModel.create({ slug: payload.hobbySlug, name, isActive: true });
+      // Unknown hobby — AI normalizes to nearest canonical form before creating
+      const normalized = await aiService.normalizeHobby(payload.hobbySlug);
+      // Check again with AI-normalized slug (e.g. "surfboarding" → "surfing" may already exist)
+      hobby = await HobbyModel.findOne({ slug: normalized.slug }).lean();
+      if (!hobby) {
+        hobby = await HobbyModel.create({ slug: normalized.slug, name: normalized.name, isActive: true });
+      }
     }
 
     // Keep roadmap deterministic/local to avoid extra Gemini calls during onboarding.

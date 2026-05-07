@@ -143,6 +143,26 @@ export const aiService = {
     return generateJSONWithProviders(SYSTEM_PROMPT_HOBBY, userPrompt);
   },
 
+  async normalizeHobby(rawInput: string): Promise<{ slug: string; name: string }> {
+    const systemPrompt =
+      'You are a hobby name normalizer. Given any hobby input (typos, slang, overly specific variants), ' +
+      'return the canonical hobby name and a URL-safe slug. ' +
+      'Examples: "electric guitar" → guitar, "oil painting" → painting, "surfboarding" → surfing. ' +
+      'Output strict JSON only: { "slug": "kebab-case", "name": "Display Name" }';
+    const userPrompt = `Normalize this hobby: "${rawInput}"`;
+    try {
+      return await generateJSONWithProviders<{ slug: string; name: string }>(systemPrompt, userPrompt);
+    } catch {
+      // Fallback: clean up the raw input ourselves
+      const name = rawInput
+        .split(/[-_\s]+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return { slug, name };
+    }
+  },
+
   async simplifyCard(_userId: string, _input: SimplifyCardInput): Promise<{ simplifiedContent: string }> {
     try {
       const userPrompt = buildSimplifyCardPrompt({

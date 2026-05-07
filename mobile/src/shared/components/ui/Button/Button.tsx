@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, type ViewStyle } from 'react-native';
-import { buttonStyles } from './Button.styles';
+import { buttonStyles as styles } from './Button.styles';
 import { haptics } from '../../../utils/haptics';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
@@ -27,22 +27,28 @@ export function Button({
     onPress();
   };
 
+  const labelStyle = [
+    styles.label,
+    variant === 'secondary' && styles.labelSecondary,
+    variant === 'ghost' && styles.labelGhost,
+    disabled && styles.labelDisabled,
+  ];
+
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
       onPress={handlePress}
-      style={[
-        buttonStyles.base,
-        variant === 'primary' && buttonStyles.primary,
-        variant === 'secondary' && buttonStyles.secondary,
-        variant === 'ghost' && buttonStyles.ghost,
-        disabled && buttonStyles.disabled,
+      style={({ pressed }) => [
+        styles.base,
+        variant === 'primary' && styles.primary,
+        variant === 'secondary' && styles.secondary,
+        variant === 'ghost' && styles.ghost,
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
         style,
       ]}>
-      <Text style={[buttonStyles.label, variant === 'ghost' && buttonStyles.labelGhost]}>
-        {label}
-      </Text>
+      <Text style={labelStyle}>{label}</Text>
     </Pressable>
   );
 }

@@ -1,36 +1,61 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, radius, typography } from '../../../../app/theme';
+import { colors, typography } from '../../../../app/theme';
+import { borders } from '../../../../app/theme/borders';
+import { shadows } from '../../../../app/theme/shadows';
 
 export const buttonStyles = StyleSheet.create({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: radius.lg,
-    gap: spacing.sm,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: borders.radius.md,
+    borderWidth: borders.width.base,
+    borderColor: colors.border,
+    gap: 8,
+    ...shadows.md,
   },
+
+  // ─── Variants ─────────────────────────────────────────────────
   primary: {
     backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.bgElevated,
   },
   ghost: {
     backgroundColor: 'transparent',
+    ...shadows.none,
+    borderColor: colors.border,
   },
+
+  // ─── States ───────────────────────────────────────────────────
   disabled: {
-    opacity: 0.5,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderLight,
+    ...shadows.none,
   },
+  pressed: {
+    // Translate matches shadow offset — creates "click into shadow" effect
+    transform: [{ translateX: 4 }, { translateY: 4 }],
+    ...shadows.none,
+  },
+
+  // ─── Labels ───────────────────────────────────────────────────
   label: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: colors.textInverse,
+    letterSpacing: 0.2,
+  },
+  labelSecondary: {
     color: colors.text,
   },
   labelGhost: {
     color: colors.primary,
+  },
+  labelDisabled: {
+    color: colors.textDim,
   },
 });

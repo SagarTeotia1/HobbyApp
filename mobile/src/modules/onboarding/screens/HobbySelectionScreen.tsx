@@ -1,41 +1,41 @@
-import React, { useCallback } from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Typography } from '../../../shared/components/ui/Typography/Typography';
-import { Button } from '../../../shared/components/ui/Button/Button';
 import { HobbyChip } from '../components/HobbyChip/HobbyChip';
 import { HobbySearchBar } from '../components/HobbySearchBar/HobbySearchBar';
 import { useOnboardingStore } from '../store/onboarding.store';
-import { useHobbySearch } from '../hooks/useHobbySearch';
 import { hobbySelectionStyles as styles } from './HobbySelectionScreen.styles';
+import { colors } from '../../../app/theme';
 import type { OnboardingStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
-import { colors } from '../../../app/theme';
 
 type Nav = NativeStackNavigationProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_HOBBY>;
 
+// Vivid neo-brutal accent colors per hobby — intentionally bold
 const PREDEFINED_HOBBIES = [
-  { id: 'chess', name: 'Chess', emoji: '♟️' },
-  { id: 'guitar', name: 'Guitar', emoji: '🎸' },
-  { id: 'drawing', name: 'Drawing', emoji: '🎨' },
-  { id: 'coding', name: 'Coding', emoji: '💻' },
-  { id: 'photography', name: 'Photography', emoji: '📷' },
-  { id: 'cooking', name: 'Cooking', emoji: '🍳' },
-  { id: 'yoga', name: 'Yoga', emoji: '🧘' },
-  { id: 'writing', name: 'Writing', emoji: '✍️' },
-  { id: 'piano', name: 'Piano', emoji: '🎹' },
-  { id: 'running', name: 'Running', emoji: '🏃' },
-];
+  { id: 'chess',   name: 'Chess',   emoji: '♟️', bg: colors.yellow },
+  { id: 'guitar',  name: 'Guitar',  emoji: '🎸', bg: colors.coral },
+  { id: 'drawing', name: 'Drawing', emoji: '🎨', bg: '#C4B5FD' },
+  { id: 'coding',  name: 'Coding',  emoji: '💻', bg: '#93C5FD' },
+  { id: 'cooking', name: 'Cooking', emoji: '🍳', bg: '#FDE68A' },
+  { id: 'piano',   name: 'Piano',   emoji: '🎹', bg: '#A5B4FC' },
+] as const;
 
 export function HobbySelectionScreen() {
   const navigation = useNavigation<Nav>();
   const hobbySlug = useOnboardingStore((s) => s.hobbySlug);
   const setHobby = useOnboardingStore((s) => s.setHobby);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  const { suggestions, isSearching, search, clear } = useHobbySearch();
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
+  // On search submit: slug → store → navigate immediately. No suggestion step.
   const handleSearch = useCallback(
     (query: string) => {
       const slug = query
@@ -43,101 +43,117 @@ export function HobbySelectionScreen() {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
-      if (slug) setHobby(slug);
-      void search(query);
+      if (!slug) return;
+      setHobby(slug);
+      navigation.navigate(ROUTES.ONBOARDING_TIME, { hobbySlug: slug });
     },
-    [search, setHobby],
+    [setHobby, navigation],
   );
 
-  const handleSuggestionSelect = useCallback(
-    (slug: string) => { setHobby(slug); clear(); },
-    [setHobby, clear],
-  );
-
-  const selectedLabel = hobbySlug
-    ? (PREDEFINED_HOBBIES.find((h) => h.id === hobbySlug)?.name ??
-       suggestions.find((s) => s.slug === hobbySlug)?.name ??
-       hobbySlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))
-    : null;
+  const selectedPredefined = PREDEFINED_HOBBIES.find((h) => h.id === hobbySlug);
+  const selectedLabel = selectedPredefined?.name ?? null;
+  const selectedEmoji = selectedPredefined?.emoji ?? '🎯';
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.kavContainer}
+        behavior="padding"
+        keyboardVerticalOffset={0}>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Typography variant="title">Pick Your Hobby</Typography>
-          <Typography variant="body" muted>
-            Choose from the list or search any hobby below.
-          </Typography>
-        </View>
-
-        {/* Predefined hobby chips */}
-        <View style={styles.grid}>
-          {PREDEFINED_HOBBIES.map((h) => (
-            <HobbyChip
-              key={h.id}
-              label={h.name}
-              emoji={h.emoji}
-              selected={hobbySlug === h.id}
-              onPress={() => { setHobby(h.id); clear(); }}
-            />
-          ))}
-        </View>
-
-        {/* Divider */}
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Typography variant="caption" muted>or search your own</Typography>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* AI search input */}
-        <HobbySearchBar onSearch={handleSearch} isSearching={isSearching} />
-
-        {/* AI-suggested hobby chips */}
-        {suggestions.length > 0 ? (
-          <View style={styles.aiSection}>
-            <Typography variant="caption" muted>AI found these — tap to select:</Typography>
-            <View style={styles.suggestionsRow}>
-              {suggestions.map((s) => (
-                <HobbyChip
-                  key={s.slug}
-                  label={s.name}
-                  selected={hobbySlug === s.slug}
-                  onPress={() => handleSuggestionSelect(s.slug)}
-                />
-              ))}
+        {/* Header — collapses when keyboard open */}
+        <View style={[styles.header, keyboardVisible && styles.headerCompact]}>
+          <View style={styles.stepRow}>
+            <Text style={styles.stepLabel}>Step 1 of 3</Text>
+            <View style={styles.stepDots}>
+              <View style={styles.dotActive} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
             </View>
           </View>
-        ) : null}
 
-        {/* Selected hobby banner */}
-        {selectedLabel ? (
-          <View style={styles.selectedBanner}>
-            <Typography variant="body" style={styles.selectedBannerText}>
-              ✓  {selectedLabel}
-            </Typography>
-            <Pressable onPress={() => { setHobby(''); clear(); }}>
-              <Typography variant="caption" color={colors.surface}>Change</Typography>
-            </Pressable>
+          {!keyboardVisible && (
+            <View style={styles.headlineBlock}>
+              <Text style={styles.headline}>
+                {'Pick Your\n'}
+                <Text style={styles.headlineAccent}>Hobby.</Text>
+              </Text>
+              <Text style={styles.subHeadline}>
+                AI builds a personal learning plan just for you.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Scrollable body */}
+        <ScrollView
+          style={styles.scrollFlex}
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+
+          {/* 3-column neo-brutal card grid */}
+          <View style={styles.grid}>
+            {PREDEFINED_HOBBIES.map((hobby) => (
+              <HobbyChip
+                key={hobby.id}
+                variant="card"
+                label={hobby.name}
+                emoji={hobby.emoji}
+                tileBg={hobby.bg}
+                selected={hobbySlug === hobby.id}
+                onPress={() => setHobby(hobby.id)}
+              />
+            ))}
           </View>
-        ) : null}
 
-      </ScrollView>
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or search any hobby</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-      <View style={styles.footer}>
-        <Button
-          label={selectedLabel ? `Continue with ${selectedLabel}` : 'Pick a hobby to continue'}
-          disabled={!hobbySlug}
-          onPress={() =>
-            navigation.navigate(ROUTES.ONBOARDING_TIME, { hobbySlug: hobbySlug ?? '' })
-          }
-        />
-      </View>
+          {/* Search — submitting navigates directly to next step */}
+          <HobbySearchBar
+            onSearch={handleSearch}
+            placeholder="e.g. Pottery, Surfing, Origami..."
+          />
+
+          {/* Selected banner (predefined chip only) */}
+          {selectedLabel ? (
+            <View style={styles.selectedBanner}>
+              <View style={styles.selectedBannerLeft}>
+                <Text style={styles.selectedBannerEmoji}>{selectedEmoji}</Text>
+                <Text style={styles.selectedBannerText}>{selectedLabel}</Text>
+              </View>
+              <Pressable onPress={() => setHobby('')}>
+                <Text style={styles.selectedBannerChange}>Change</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+        </ScrollView>
+
+        {/* Footer CTA — inside KAV so it lifts with keyboard */}
+        <View style={[styles.footer, keyboardVisible && styles.footerKeyboard]}>
+          <Pressable
+            disabled={!hobbySlug}
+            style={({ pressed }) => [
+              styles.ctaButton,
+              !hobbySlug && styles.ctaButtonDisabled,
+              pressed && !!hobbySlug && styles.ctaButtonPressed,
+            ]}
+            onPress={() =>
+              navigation.navigate(ROUTES.ONBOARDING_TIME, { hobbySlug: hobbySlug ?? '' })
+            }>
+            <Text style={[styles.ctaText, !hobbySlug && styles.ctaTextDisabled]}>
+              {selectedLabel ? `Continue with ${selectedLabel}  →` : 'Pick a hobby to continue'}
+            </Text>
+          </Pressable>
+        </View>
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

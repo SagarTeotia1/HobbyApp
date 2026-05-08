@@ -37,7 +37,7 @@ export function LearningFeedScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
-  const { hobbyId, topicId, topicName, stageIndex } = route.params;
+  const { hobbyId, topicId, topicName, stageIndex, accumulatedVideos = 0 } = route.params;
 
   const addXP = useUserStore((s) => s.addXP);
   const streak = useUserStore((s) => s.streak);
@@ -65,6 +65,7 @@ export function LearningFeedScreen() {
   const currentVideo = videos[currentIndex];
 
   const awardXP = useCallback(() => {
+    if (watchedSet.current.has(currentIndex)) return;
     addXP(XP_PER_VIDEO);
     setXpDelta(XP_PER_VIDEO);
     markVideoWatched(hobbyId, topicId, videos.length);
@@ -75,17 +76,19 @@ export function LearningFeedScreen() {
   const goNextTopic = useCallback(() => {
     const currentStageIdx = roadmapStages.findIndex((s) => s.conceptId === topicId);
     const nextStage = roadmapStages[currentStageIdx + 1];
+    const totalWatched = accumulatedVideos + watchedSet.current.size;
     if (nextStage) {
       navigation.replace(ROUTES.FEED, {
         hobbyId,
         topicId: nextStage.conceptId,
         topicName: nextStage.title,
         stageIndex: currentStageIdx + 1,
+        accumulatedVideos: totalWatched,
       });
     } else {
       navigation.navigate(ROUTES.ROADMAP);
     }
-  }, [roadmapStages, topicId, hobbyId, navigation]);
+  }, [roadmapStages, topicId, hobbyId, navigation, accumulatedVideos]);
 
   const handleContinue = useCallback(() => {
     awardXP();
@@ -97,12 +100,18 @@ export function LearningFeedScreen() {
   }, [awardXP, isLast, goNextTopic]);
 
   const handleBreak = useCallback(() => {
+    if (!watchedSet.current.has(currentIndex)) {
+      addXP(XP_PER_VIDEO);
+      markVideoWatched(hobbyId, topicId, videos.length);
+      watchedSet.current.add(currentIndex);
+    }
+    const totalWatched = accumulatedVideos + watchedSet.current.size;
     navigation.replace(ROUTES.PROGRESS, {
       hobbyId,
-      videosWatched: watchedSet.current.size,
-      xpEarned: watchedSet.current.size * XP_PER_VIDEO,
+      videosWatched: totalWatched,
+      xpEarned: totalWatched * XP_PER_VIDEO,
     });
-  }, [navigation, hobbyId]);
+  }, [navigation, hobbyId, currentIndex, addXP, markVideoWatched, topicId, videos.length, accumulatedVideos]);
 
   const handleDetail = useCallback(() => {
     navigation.navigate(ROUTES.TOPIC_DETAIL, { hobbyId, topicId, topicName, hobbyName });

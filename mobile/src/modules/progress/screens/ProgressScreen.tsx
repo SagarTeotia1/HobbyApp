@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUserStore } from '../../../app/store/rootStore';
-import { GAME_CONFIG } from '../../../shared/constants/gameConfig';
+import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
+import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { colors, spacing, radius } from '../../../app/theme';
 import type { AppStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
@@ -22,92 +23,163 @@ export function ProgressScreen() {
   const streak = useUserStore((s) => s.streak);
   const updateStreak = useUserStore((s) => s.updateStreak);
 
+  const getCompletedTopicCount = useRoadmapStore((s) => s.getCompletedTopicCount);
+  const completedTopics = getCompletedTopicCount(hobbyId);
+  const { roadmap } = useRoadmap(hobbyId);
+  const totalTopics = roadmap?.stages.length ?? 0;
+  const roadmapPct = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+
   useEffect(() => {
     updateStreak();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const progressToNextLevel = (xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL) / GAME_CONFIG.LEVELS.XP_PER_LEVEL;
-
-  const handleContinue = () => navigation.navigate(ROUTES.ROADMAP);
-  const handleDashboard = () => navigation.navigate(ROUTES.DASHBOARD);
-
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Session Complete 🎉</Text>
+      {/* Top content */}
+      <View style={styles.content}>
+
+        {/* Hero */}
+        <View style={styles.hero}>
+          <Text style={styles.heroEmoji}>🎉</Text>
+          <Text style={styles.heroTitle}>Session Complete!</Text>
+          <Text style={styles.heroSub}>Keep the momentum going</Text>
+        </View>
+
+        {/* XP earned highlight */}
+        <View style={styles.xpBanner}>
+          <Text style={styles.xpBannerLabel}>XP EARNED THIS SESSION</Text>
+          <Text style={styles.xpBannerValue}>+{xpEarned}</Text>
+        </View>
 
         {/* Stats row */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
             <Text style={styles.statValue}>{videosWatched}</Text>
-            <Text style={styles.statLabel}>Videos Watched</Text>
+            <Text style={styles.statLabel}>Videos</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValueXP}>+{xpEarned}</Text>
-            <Text style={styles.statLabel}>XP Earned</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{streak > 0 ? `🔥 ${streak}` : '0'}</Text>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{streak > 0 ? `🔥 ${streak}` : '—'}</Text>
             <Text style={styles.statLabel}>Day Streak</Text>
           </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>Lv {level}</Text>
+            <Text style={styles.statLabel}>Level</Text>
+          </View>
         </View>
 
-        {/* Level card */}
+        {/* Roadmap progress */}
         <View style={styles.levelCard}>
           <View style={styles.levelRow}>
-            <Text style={styles.levelLabel}>LEVEL {level}</Text>
-            <Text style={styles.levelXP}>{xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL} / {GAME_CONFIG.LEVELS.XP_PER_LEVEL} XP</Text>
+            <Text style={styles.levelLabel}>Roadmap Progress</Text>
+            <Text style={styles.levelXP}>{completedTopics} / {totalTopics} topics</Text>
           </View>
-          <View style={styles.levelBarOuter}>
-            <View style={[styles.levelBarInner, { width: `${progressToNextLevel * 100}%` }]} />
+          <View style={styles.barOuter}>
+            <View style={[styles.barInner, { width: `${roadmapPct}%` }]} />
           </View>
-          <Text style={styles.levelHint}>
-            {Math.round((1 - progressToNextLevel) * GAME_CONFIG.LEVELS.XP_PER_LEVEL)} XP to level {level + 1}
-          </Text>
+          <Text style={styles.levelHint}>{roadmapPct}% complete · Lv {level} · {xp} XP</Text>
         </View>
+      </View>
 
-        <View style={styles.actions}>
-          <Pressable
-            style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPressed]}
-            onPress={handleContinue}>
-            <Text style={styles.btnPrimaryText}>Continue Roadmap →</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.btnSecondary, pressed && styles.btnPressed]}
-            onPress={handleDashboard}>
-            <Text style={styles.btnSecondaryText}>View Dashboard</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+      {/* Sticky bottom actions */}
+      <View style={styles.actions}>
+        <Pressable
+          style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPressed]}
+          onPress={() => navigation.navigate(ROUTES.ROADMAP)}>
+          <Text style={styles.btnPrimaryText}>Continue Learning →</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.btnSecondary, pressed && styles.btnPressed]}
+          onPress={() => navigation.navigate(ROUTES.ROADMAP)}>
+          <Text style={styles.btnSecondaryText}>🗺️ Go to Roadmap</Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl },
-  heading: { fontSize: 26, fontWeight: '900', color: colors.text, marginBottom: spacing.sm },
-  statsCard: {
-    flexDirection: 'row',
+
+  content: {
+    flex: 1,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+
+  // ── Hero ──────────────────────────────────────────────────────────
+  hero: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.xs,
+  },
+  heroEmoji: { fontSize: 52 },
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
+
+  // ── XP banner ─────────────────────────────────────────────────────
+  xpBanner: {
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
-    backgroundColor: colors.bgElevated,
+    backgroundColor: colors.yellow,
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 4,
-    overflow: 'hidden',
+    gap: 4,
   },
-  statItem: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg },
-  statDivider: { width: 2, backgroundColor: colors.border },
-  statValue: { fontSize: 22, fontWeight: '900', color: colors.text },
-  statValueXP: { fontSize: 22, fontWeight: '900', color: colors.yellow },
-  statLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
+  xpBannerLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    opacity: 0.7,
+  },
+  xpBannerValue: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: -1,
+  },
+
+  // ── Stats row ─────────────────────────────────────────────────────
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  statCard: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+    gap: 4,
+  },
+  statValue: { fontSize: 20, fontWeight: '900', color: colors.text },
+  statLabel: { fontSize: 10, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' },
+
+  // ── Level card ────────────────────────────────────────────────────
   levelCard: {
     borderWidth: 2,
     borderColor: colors.border,
@@ -122,29 +194,33 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   levelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  levelLabel: { fontSize: 14, fontWeight: '900', color: colors.textInverse },
-  levelXP: { fontSize: 12, fontWeight: '700', color: colors.primaryLight },
-  levelBarOuter: {
-    height: 12,
+  levelLabel: { fontSize: 13, fontWeight: '900', color: colors.textInverse },
+  levelXP: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.6)' },
+  barOuter: {
+    height: 10,
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: radius.pill,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
   },
-  levelBarInner: {
-    height: '100%',
-    backgroundColor: colors.yellow,
-    borderRadius: radius.pill,
+  barInner: { height: '100%', backgroundColor: colors.yellow, borderRadius: radius.pill },
+  levelHint: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.6)' },
+
+  // ── Action buttons (sticky bottom) ────────────────────────────────
+  actions: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
+    borderTopWidth: 2,
+    borderTopColor: colors.border,
+    backgroundColor: colors.bg,
   },
-  levelHint: { fontSize: 12, fontWeight: '600', color: colors.primaryLight },
-  actions: { gap: spacing.sm, marginTop: spacing.md },
   btnPrimary: {
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
+    paddingVertical: 18,
     alignItems: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 4, height: 4 },
@@ -157,7 +233,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.bgElevated,
-    paddingVertical: spacing.md,
+    paddingVertical: 18,
     alignItems: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 4, height: 4 },
@@ -171,6 +247,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
-  btnPrimaryText: { fontSize: 15, fontWeight: '900', color: colors.textInverse },
-  btnSecondaryText: { fontSize: 15, fontWeight: '800', color: colors.text },
+  btnPrimaryText: { fontSize: 16, fontWeight: '900', color: colors.textInverse },
+  btnSecondaryText: { fontSize: 16, fontWeight: '800', color: colors.text },
 });

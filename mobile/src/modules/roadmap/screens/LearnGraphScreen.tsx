@@ -119,7 +119,9 @@ export function LearnGraphScreen() {
               </Pressable>
             </View>
             <Text style={styles.nodePanelTitle}>{selectedNode.label}</Text>
-            <Text style={styles.nodePanelDesc}>{selectedNode.description}</Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.nodePanelScroll}>
+              <Text style={styles.nodePanelDesc}>{selectedNode.description}</Text>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -203,7 +205,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.bgElevated,
     flexDirection: 'row',
-    maxHeight: 160,
+    maxHeight: 220,
   },
   nodePanelAccent: { width: 6 },
   nodePanelContent: { flex: 1, padding: spacing.md },
@@ -216,6 +218,9 @@ const styles = StyleSheet.create({
   },
   nodePanelClose: { fontSize: 14, color: colors.textDim, fontWeight: '700' },
   nodePanelTitle: { fontSize: 16, fontWeight: '900', color: colors.text, marginBottom: spacing.xs },
+  nodePanelScroll: {
+    maxHeight: 140,
+  },
   nodePanelDesc: { fontSize: 13, fontWeight: '500', color: colors.textMuted, lineHeight: 19 },
   tapHint: {
     paddingVertical: spacing.sm,

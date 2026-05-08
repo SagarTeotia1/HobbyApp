@@ -49,20 +49,20 @@ Return exactly this JSON:
 Return ONLY valid JSON with no markdown fences, no explanation, no trailing commas.`;
 
     const user = `Create a knowledge graph for "${input.topicName}" in "${input.hobbyName}".
-Include 8-12 nodes showing how concepts connect.
+  Include 8-12 nodes showing how concepts connect.
 
 Return exactly this JSON:
 {
   "title": "Knowledge Graph: ${input.topicName}",
   "nodes": [
-    { "id": "1", "label": "Short Label", "type": "root", "description": "What this topic is about" },
-    { "id": "2", "label": "Short Label", "type": "concept", "description": "Core concept explanation" },
-    { "id": "3", "label": "Short Label", "type": "concept", "description": "Core concept explanation" },
-    { "id": "4", "label": "Short Label", "type": "detail", "description": "Specific detail" },
-    { "id": "5", "label": "Short Label", "type": "detail", "description": "Specific detail" },
-    { "id": "6", "label": "Short Label", "type": "detail", "description": "Specific detail" },
-    { "id": "7", "label": "Short Label", "type": "example", "description": "Practical example" },
-    { "id": "8", "label": "Short Label", "type": "example", "description": "Practical example" }
+    { "id": "1", "label": "Short Label", "type": "root", "description": "2-3 sentence overview of the whole topic" },
+    { "id": "2", "label": "Short Label", "type": "concept", "description": "2-3 sentence core concept explanation" },
+    { "id": "3", "label": "Short Label", "type": "concept", "description": "2-3 sentence core concept explanation" },
+    { "id": "4", "label": "Short Label", "type": "detail", "description": "2-3 sentence specific detail" },
+    { "id": "5", "label": "Short Label", "type": "detail", "description": "2-3 sentence specific detail" },
+    { "id": "6", "label": "Short Label", "type": "detail", "description": "2-3 sentence specific detail" },
+    { "id": "7", "label": "Short Label", "type": "example", "description": "2-3 sentence practical example" },
+    { "id": "8", "label": "Short Label", "type": "example", "description": "2-3 sentence practical example" }
   ],
   "edges": [
     { "from": "1", "to": "2", "label": "includes" },
@@ -76,7 +76,8 @@ Return exactly this JSON:
 }
 
 Node types: "root" (1 only), "concept", "detail", "example".
-Labels must be 2-4 words max.`;
+Labels must be 2-4 words max.
+Descriptions must be 2-3 sentences with concrete, helpful detail.`;
 
     const raw = await groqClient.generateText(system, [], user, 1536);
     const cleaned = extractJSON(raw);

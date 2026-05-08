@@ -21,7 +21,7 @@ export type TopicScreenParams = {
 
 export type AppStackParamList = {
   [ROUTES.ROADMAP]:      undefined;
-  [ROUTES.FEED]:         { hobbyId: string; topicId: string; topicName: string };
+  [ROUTES.FEED]:         { hobbyId: string; topicId: string; topicName: string; stageIndex: number };
   [ROUTES.PROGRESS]:     { hobbyId: string; videosWatched: number; xpEarned: number };
   [ROUTES.DASHBOARD]:    undefined;
   [ROUTES.TOPIC_DETAIL]: TopicScreenParams;

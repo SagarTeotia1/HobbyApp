@@ -1,3 +1,18 @@
+export interface RoadmapStage {
+  order: number;
+  conceptId: string;
+  title: string;
+  description: string;
+  isUnlocked: boolean;
+  isMastered: boolean;
+}
+
+export interface RoadmapData {
+  hobbyId: string;
+  skillLevel: string;
+  stages: RoadmapStage[];
+}
+
 export interface TopicProgress {
   topicId: string;
   completed: boolean;

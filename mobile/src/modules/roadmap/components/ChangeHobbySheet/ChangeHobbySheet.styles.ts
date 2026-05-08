@@ -202,4 +202,24 @@ export const styles = StyleSheet.create({
   },
 
   bottomSpacer: { height: 48 },
+
+  // ── Generating state ──────────────────────────────────────────────
+  generatingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.primaryLight,
+    borderWidth: borders.width.base,
+    borderColor: colors.primary,
+    borderRadius: borders.radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  generatingText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+  },
 });

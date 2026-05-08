@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, Pressable, ScrollView, TextInput } from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { CURRICULUM } from '../../../../shared/constants/curriculum';
 import { colors } from '../../../../app/theme';
 import { styles } from './ChangeHobbySheet.styles';
@@ -31,22 +31,25 @@ function matchHobby(query: string): string {
 interface Props {
   visible: boolean;
   currentHobbyId: string;
+  generating?: boolean;
   onSelect: (hobbyId: string) => void;
   onClose: () => void;
 }
 
-export function ChangeHobbySheet({ visible, currentHobbyId, onSelect, onClose }: Props) {
+export function ChangeHobbySheet({ visible, currentHobbyId, generating = false, onSelect, onClose }: Props) {
   const [searchText, setSearchText] = useState('');
   const [focused, setFocused] = useState(false);
 
   const currentHobby = CURRICULUM.find((h) => h.id === currentHobbyId);
 
   function handleChipPress(hobbyId: string) {
+    if (generating) return;
     onSelect(hobbyId);
     setSearchText('');
   }
 
   function handleSearch() {
+    if (generating) return;
     const trimmed = searchText.trim();
     if (!trimmed) return;
     const matched = matchHobby(trimmed);
@@ -55,12 +58,13 @@ export function ChangeHobbySheet({ visible, currentHobbyId, onSelect, onClose }:
   }
 
   function handleClose() {
+    if (generating) return;
     setSearchText('');
     setFocused(false);
     onClose();
   }
 
-  const canSearch = !!searchText.trim();
+  const canSearch = !!searchText.trim() && !generating;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
@@ -72,6 +76,13 @@ export function ChangeHobbySheet({ visible, currentHobbyId, onSelect, onClose }:
             <Text style={styles.title}>Change Hobby</Text>
             <Text style={styles.subtitle}>Pick a new topic to master</Text>
           </View>
+
+          {generating && (
+            <View style={styles.generatingBanner}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.generatingText}>Building your AI roadmap…</Text>
+            </View>
+          )}
 
           <ScrollView
             contentContainerStyle={styles.sheetInner}

@@ -33,7 +33,7 @@ const VIDEO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.45);
 export function LearningFeedScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
-  const { hobbyId, topicId, topicName } = route.params;
+  const { hobbyId, topicId, topicName, stageIndex } = route.params;
 
   const addXP = useUserStore((s) => s.addXP);
   const xp = useUserStore((s) => s.xp);
@@ -41,7 +41,7 @@ export function LearningFeedScreen() {
   const streak = useUserStore((s) => s.streak);
   const markVideoWatched = useRoadmapStore((s) => s.markVideoWatched);
 
-  const { data: videos = [], isLoading } = useFeedVideos(hobbyId, topicId);
+  const { data: videos = [], isLoading } = useFeedVideos(hobbyId, topicId, stageIndex);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [xpDelta, setXpDelta] = useState(0);

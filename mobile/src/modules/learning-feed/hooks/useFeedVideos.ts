@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { learningFeedService } from '../services/learningFeed.service';
-import { getTopicById } from '../../../shared/constants/curriculum';
+import { getTopicById, getTopicByIndex, FALLBACK_VIDEOS } from '../../../shared/constants/curriculum';
 import { queryKeys } from '../../../shared/constants/queryKeys';
 import type { FeedVideo } from '../types/feed.types';
 
-function staticFallback(hobbyId: string, topicId: string): FeedVideo[] {
-  const topic = getTopicById(hobbyId, topicId);
-  if (!topic) return [];
-  return topic.videos.map((v) => ({
+function curriculumVideosToFeed(videos: typeof FALLBACK_VIDEOS): FeedVideo[] {
+  return videos.map((v) => ({
     id: v.id,
     title: v.title,
     creator: v.creator,
@@ -20,14 +18,20 @@ function staticFallback(hobbyId: string, topicId: string): FeedVideo[] {
   }));
 }
 
-export function useFeedVideos(hobbyId: string, topicId: string) {
+function resolveStaticVideos(hobbyId: string, topicId: string, stageIndex: number): FeedVideo[] {
+  const topic = getTopicById(hobbyId, topicId) ?? getTopicByIndex(hobbyId, stageIndex);
+  const videos = topic?.videos ?? FALLBACK_VIDEOS;
+  return curriculumVideosToFeed(videos);
+}
+
+export function useFeedVideos(hobbyId: string, topicId: string, stageIndex: number) {
   return useQuery({
     queryKey: queryKeys.curriculum.topic(hobbyId, topicId),
     queryFn: async () => {
       try {
         return await learningFeedService.getTopicVideos(hobbyId, topicId);
       } catch {
-        return { id: topicId, name: '', videos: staticFallback(hobbyId, topicId) };
+        return { id: topicId, name: '', videos: resolveStaticVideos(hobbyId, topicId, stageIndex) };
       }
     },
     select: (data) => data.videos,

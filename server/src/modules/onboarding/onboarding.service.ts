@@ -75,8 +75,16 @@ export const onboardingService = {
       }
     }
 
-    // Keep roadmap deterministic/local to avoid extra Gemini calls during onboarding.
-    const stages = buildFallbackRoadmap(hobby.slug);
+    let stages: Array<{ order: number; conceptId: string; title: string; description: string }>;
+    try {
+      stages = await aiService.generateRoadmap({
+        hobby: hobby.name,
+        level: payload.skillLevel,
+        dailyMinutes: payload.dailyMinutes,
+      });
+    } catch {
+      stages = buildFallbackRoadmap(hobby.slug);
+    }
 
     const roadmapDoc = await RoadmapModel.findOneAndUpdate(
       { userId, hobbyId: hobby.slug },

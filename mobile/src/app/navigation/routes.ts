@@ -10,10 +10,12 @@ export const ROUTES = {
   ONBOARDING_PLAN_GENERATION: 'Onboarding.PlanGeneration',
 
   // App stack (no tabs)
-  ROADMAP: 'App.Roadmap',
-  FEED: 'App.Feed',
-  PROGRESS: 'App.Progress',
-  DASHBOARD: 'App.Dashboard',
+  ROADMAP:      'App.Roadmap',
+  FEED:         'App.Feed',
+  PROGRESS:     'App.Progress',
+  DASHBOARD:    'App.Dashboard',
+  TOPIC_DETAIL: 'App.TopicDetail',
+  LEARN_GRAPH:  'App.LearnGraph',
 } as const;
 
 export type RouteName = (typeof ROUTES)[keyof typeof ROUTES];

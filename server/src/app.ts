@@ -14,6 +14,7 @@ import { aiRouter } from './modules/ai/ai.router';
 import { hobbiesRouter } from './modules/hobbies/hobbies.router';
 import { profileRouter } from './modules/profile/profile.router';
 import { curriculumRouter } from './modules/curriculum/curriculum.router';
+import { roadmapRouter } from './modules/roadmap/roadmap.router';
 
 export function createApp(): Application {
   const app = express();
@@ -36,6 +37,7 @@ export function createApp(): Application {
   app.use('/api/v1/hobbies', hobbiesRouter);
   app.use('/api/v1/profile', profileRouter);
   app.use('/api/v1/curriculum', curriculumRouter);
+  app.use('/api/v1/roadmap',    roadmapRouter);
 
   app.use((_req, res) => {
     ApiResponse.error(res, 404, 'NOT_FOUND', 'Route not found');

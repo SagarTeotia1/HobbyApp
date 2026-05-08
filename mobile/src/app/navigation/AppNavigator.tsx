@@ -1,6 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RoadmapScreen } from '../../modules/roadmap/screens/RoadmapScreen';
+import { TopicDetailScreen } from '../../modules/roadmap/screens/TopicDetailScreen';
+import { LearnGraphScreen } from '../../modules/roadmap/screens/LearnGraphScreen';
 import { LearningFeedScreen } from '../../modules/learning-feed/screens/LearningFeedScreen';
 import { ProgressScreen } from '../../modules/progress/screens/ProgressScreen';
 import { DashboardScreen } from '../../modules/dashboard/screens/DashboardScreen';
@@ -13,6 +15,16 @@ export function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={ROUTES.ROADMAP} component={RoadmapScreen} />
+      <Stack.Screen
+        name={ROUTES.TOPIC_DETAIL}
+        component={TopicDetailScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name={ROUTES.LEARN_GRAPH}
+        component={LearnGraphScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
       <Stack.Screen
         name={ROUTES.FEED}
         component={LearningFeedScreen}

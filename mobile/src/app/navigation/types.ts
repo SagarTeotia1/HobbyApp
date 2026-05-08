@@ -12,11 +12,20 @@ export type OnboardingStackParamList = {
   };
 };
 
+export type TopicScreenParams = {
+  hobbyId: string;
+  topicId: string;
+  topicName: string;
+  hobbyName: string;
+};
+
 export type AppStackParamList = {
-  [ROUTES.ROADMAP]: undefined;
-  [ROUTES.FEED]: { hobbyId: string; topicId: string; topicName: string };
-  [ROUTES.PROGRESS]: { hobbyId: string; videosWatched: number; xpEarned: number };
-  [ROUTES.DASHBOARD]: undefined;
+  [ROUTES.ROADMAP]:      undefined;
+  [ROUTES.FEED]:         { hobbyId: string; topicId: string; topicName: string };
+  [ROUTES.PROGRESS]:     { hobbyId: string; videosWatched: number; xpEarned: number };
+  [ROUTES.DASHBOARD]:    undefined;
+  [ROUTES.TOPIC_DETAIL]: TopicScreenParams;
+  [ROUTES.LEARN_GRAPH]:  TopicScreenParams;
 };
 
 export type RootStackParamList = {

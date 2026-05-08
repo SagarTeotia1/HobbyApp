@@ -11,9 +11,10 @@ interface Props {
   isLast: boolean;
   isLocked: boolean;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-export function RoadmapNode({ topicName, topicIndex, progress, isFirst, isLast, isLocked, onPress }: Props) {
+export function RoadmapNode({ topicName, topicIndex, progress, isFirst, isLast, isLocked, onPress, onLongPress }: Props) {
   const isCompleted = progress?.completed ?? false;
   const isCurrent = !isCompleted && !isLocked;
   const watched = progress?.videosWatched ?? 0;
@@ -34,6 +35,8 @@ export function RoadmapNode({ topicName, topicIndex, progress, isFirst, isLast, 
         <Pressable
           style={({ pressed }) => [styles.card, cardStyle, pressed && !isLocked && styles.cardPressed]}
           onPress={isLocked ? undefined : onPress}
+          onLongPress={isLocked ? undefined : onLongPress}
+          delayLongPress={400}
           disabled={isLocked}>
           <View style={styles.topRow}>
             <Text style={[styles.label, labelStyle]}>{label}</Text>

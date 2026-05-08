@@ -11,11 +11,12 @@ export const groqClient = {
     systemPrompt: string,
     history: Array<{ role: 'user' | 'assistant'; content: string }>,
     userMessage: string,
+    maxTokens = 512,
   ): Promise<string> {
     const completion = await groq.chat.completions.create({
       model: env.GROQ_MODEL_FAST,
       temperature: 0.9,
-      max_tokens: 512,
+      max_tokens: maxTokens,
       messages: [
         { role: 'system', content: systemPrompt },
         ...history.map((m) => ({ role: m.role, content: m.content })),

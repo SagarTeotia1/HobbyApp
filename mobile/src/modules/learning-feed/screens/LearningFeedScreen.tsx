@@ -181,7 +181,10 @@ export function LearningFeedScreen() {
         <Pressable
           style={({ pressed }) => [styles.playlistOverlay, pressed && styles.playlistOverlayPressed]}
           onPress={() => setSheetOpen(true)}>
-          <Text style={styles.playlistOverlayText}>☰ {currentIndex + 1}/{videos.length}</Text>
+          <View style={styles.playlistOverlayRow}>
+            <Text style={styles.playlistOverlayIcon}>☰</Text>
+            <Text style={styles.playlistOverlayText}>{currentIndex + 1}/{videos.length}</Text>
+          </View>
         </Pressable>
       </View>
 
@@ -289,15 +292,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.sm,
     right: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.border,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
+    paddingVertical: spacing.xs,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
   },
   playlistOverlayPressed: { opacity: 0.7 },
-  playlistOverlayText: { color: '#fff', fontSize: 12, fontWeight: '900' },
+  playlistOverlayRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  playlistOverlayIcon: { fontSize: 12, fontWeight: '900', color: colors.textInverse },
+  playlistOverlayText: { color: colors.textInverse, fontSize: 14, fontWeight: '900' },
   flashcardScroll: { flex: 1 },
   flashcardScrollContent: { },
 

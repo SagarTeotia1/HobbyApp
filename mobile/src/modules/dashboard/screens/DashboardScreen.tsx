@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Alert, ScrollView, StyleSheet, View, Text, Pressable } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Modal, ScrollView, StyleSheet, View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -32,25 +32,16 @@ export function DashboardScreen() {
     (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
   ).length;
   const hobby = getHobbyById(hobbyId);
+  const [resetOpen, setResetOpen] = useState(false);
 
   const handleBack = () => navigation.navigate(ROUTES.ROADMAP);
 
-  const handleResetProfile = useCallback(() => {
-    Alert.alert(
-      'Reset Profile',
-      'This will erase all XP, progress, and roadmap data. Cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: () => {
-            resetRoadmap();
-            useUserStore.getState().reset();
-          },
-        },
-      ],
-    );
+  const handleResetProfile = useCallback(() => setResetOpen(true), []);
+
+  const handleConfirmReset = useCallback(() => {
+    resetRoadmap();
+    useUserStore.getState().reset();
+    setResetOpen(false);
   }, [resetRoadmap]);
 
   return (
@@ -123,6 +114,35 @@ export function DashboardScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
       <FloatingAIButton hobbyId={hobbyId} context="dashboard" />
+
+      <Modal
+        visible={resetOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setResetOpen(false)}>
+        <Pressable style={styles.resetOverlay} onPress={() => setResetOpen(false)} />
+        <View style={styles.resetModal}>
+          <View style={styles.resetBadge}>
+            <Text style={styles.resetBadgeText}>!</Text>
+          </View>
+          <Text style={styles.resetTitle}>Reset Profile?</Text>
+          <Text style={styles.resetBody}>
+            This will erase all XP, progress, and roadmap data. This cannot be undone.
+          </Text>
+          <View style={styles.resetActions}>
+            <Pressable
+              style={({ pressed }) => [styles.resetCancelBtn, pressed && styles.resetCancelBtnPressed]}
+              onPress={() => setResetOpen(false)}>
+              <Text style={styles.resetCancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.resetConfirmBtn, pressed && styles.resetConfirmBtnPressed]}
+              onPress={handleConfirmReset}>
+              <Text style={styles.resetConfirmText}>Yes, Reset</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -261,5 +281,82 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   resetBtnText: { fontSize: 14, fontWeight: '800', color: colors.danger },
+  resetOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  resetModal: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    top: '35%',
+    backgroundColor: colors.bgElevated,
+    borderWidth: 3,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 4, height: 4 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 6,
+  },
+  resetBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.yellow,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resetBadgeText: { fontSize: 18, fontWeight: '900', color: colors.text },
+  resetTitle: { fontSize: 18, fontWeight: '900', color: colors.text },
+  resetBody: { fontSize: 13, fontWeight: '600', color: colors.textMuted, lineHeight: 19 },
+  resetActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  resetCancelBtn: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.bg,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  resetCancelBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  resetCancelText: { fontSize: 13, fontWeight: '800', color: colors.text },
+  resetConfirmBtn: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.danger,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  resetConfirmBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  resetConfirmText: { fontSize: 13, fontWeight: '900', color: colors.textInverse },
   bottomSpacer: { height: 20 },
 });

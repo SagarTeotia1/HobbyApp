@@ -12,9 +12,15 @@ interface Props {
   isLocked: boolean;
   onPress: () => void;
   onLongPress?: () => void;
+  onDetail?: () => void;
+  onGraph?: () => void;
 }
 
-export function RoadmapNode({ topicName, topicIndex, progress, isFirst, isLast, isLocked, onPress, onLongPress }: Props) {
+export function RoadmapNode({
+  topicName, topicIndex, progress,
+  isFirst, isLast, isLocked,
+  onPress, onLongPress, onDetail, onGraph,
+}: Props) {
   const isCompleted = progress?.completed ?? false;
   const isCurrent = !isCompleted && !isLocked;
   const watched = progress?.videosWatched ?? 0;
@@ -25,41 +31,69 @@ export function RoadmapNode({ topicName, topicIndex, progress, isFirst, isLast, 
   const labelStyle = isCompleted ? styles.labelCompleted : isCurrent ? styles.labelCurrent : styles.labelLocked;
   const connectorStyle = isCompleted ? styles.connectorCompleted : isLocked ? styles.connectorLocked : styles.connector;
 
-  const label = isCompleted ? 'COMPLETED ✓' : isCurrent ? 'IN PROGRESS' : `LOCKED`;
+  const label = isCompleted ? 'COMPLETED ✓' : isCurrent ? 'IN PROGRESS' : 'LOCKED';
 
   return (
     <View style={styles.wrapper}>
       {!isFirst && <View style={[styles.connector, connectorStyle]} />}
       <View style={styles.row}>
         <View style={[styles.dot, dotStyle]} />
-        <Pressable
-          style={({ pressed }) => [styles.card, cardStyle, pressed && !isLocked && styles.cardPressed]}
-          onPress={isLocked ? undefined : onPress}
-          onLongPress={isLocked ? undefined : onLongPress}
-          delayLongPress={400}
-          disabled={isLocked}>
-          <View style={styles.topRow}>
-            <Text style={[styles.label, labelStyle]}>{label}</Text>
-            {isCompleted ? (
-              <Text style={styles.checkmark}>✓</Text>
-            ) : isLocked ? (
-              <Text style={styles.lockIcon}>🔒</Text>
-            ) : null}
-          </View>
-          <Text style={[styles.title, isLocked && styles.titleLocked]} numberOfLines={2}>
-            {topicIndex + 1}. {topicName}
-          </Text>
+        <View style={styles.cardColumn}>
+
+          <Pressable
+            style={({ pressed }) => [styles.card, cardStyle, pressed && !isLocked && styles.cardPressed]}
+            onPress={isLocked ? undefined : onPress}
+            onLongPress={isLocked ? undefined : onLongPress}
+            delayLongPress={400}
+            disabled={isLocked}>
+            <View style={styles.cardInner}>
+              <View style={styles.cardContent}>
+                <View style={styles.topRow}>
+                  <Text style={[styles.label, labelStyle]}>{label}</Text>
+                  {isCompleted && <Text style={styles.checkmark}>✓</Text>}
+                  {isLocked && <Text style={styles.lockIcon}>🔒</Text>}
+                </View>
+                <Text style={[styles.title, isLocked && styles.titleLocked]} numberOfLines={2}>
+                  {topicIndex + 1}. {topicName}
+                </Text>
+                {!isLocked && (
+                  <View style={styles.progressRow}>
+                    {Array.from({ length: total }).map((_, i) => (
+                      <View
+                        key={i}
+                        style={[styles.progressDot, i >= watched && styles.progressDotEmpty]}
+                      />
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {!isLocked && (
+                <View style={styles.continueDivider} />
+              )}
+              {!isLocked && (
+                <View style={styles.continueSection}>
+                  <Text style={styles.continueBtnText}>›</Text>
+                </View>
+              )}
+            </View>
+          </Pressable>
+
           {!isLocked && (
-            <View style={styles.progressRow}>
-              {Array.from({ length: total }).map((_, i) => (
-                <View
-                  key={i}
-                  style={[styles.progressDot, i >= watched && styles.progressDotEmpty]}
-                />
-              ))}
+            <View style={styles.actionRow}>
+              <Pressable
+                style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+                onPress={onDetail}>
+                <Text style={styles.actionBtnText}>🧠 Detail</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.actionBtn, styles.actionBtnGraph, pressed && styles.actionBtnPressed]}
+                onPress={onGraph}>
+                <Text style={styles.actionBtnText}>🕸️ Graph</Text>
+              </Pressable>
             </View>
           )}
-        </Pressable>
+        </View>
       </View>
     </View>
   );

@@ -18,8 +18,31 @@ export const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.md,
+  },
+  cardColumn: {
+    flex: 1,
+    gap: 6,
+  },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardContent: {
+    flex: 1,
+  },
+  continueDivider: {
+    width: 1.5,
+    alignSelf: 'stretch',
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.sm,
+    opacity: 0.3,
+  },
+  continueSection: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dot: {
     width: 20,
@@ -120,5 +143,46 @@ export const styles = StyleSheet.create({
   },
   lockIcon: {
     fontSize: 14,
+  },
+
+  continueBtnText: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: colors.primary,
+  },
+
+  // ── Inline action buttons ─────────────────────────────────────────
+  actionRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  actionBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 2,
+  },
+  actionBtnGraph: {
+    backgroundColor: colors.primaryLight,
+  },
+  actionBtnPressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  actionBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: 0.2,
   },
 });

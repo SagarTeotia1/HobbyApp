@@ -64,27 +64,36 @@ export function RoadmapScreen() {
     [],
   );
 
+  const navigateToDetail = useCallback(
+    (topicId: string, topicName: string) => {
+      setActionSheet(null);
+      navigation.navigate(ROUTES.TOPIC_DETAIL, {
+        hobbyId, topicId, topicName, hobbyName: hobbyMeta?.name ?? hobbyId,
+      });
+    },
+    [navigation, hobbyId, hobbyMeta],
+  );
+
+  const navigateToGraph = useCallback(
+    (topicId: string, topicName: string) => {
+      setActionSheet(null);
+      navigation.navigate(ROUTES.LEARN_GRAPH, {
+        hobbyId, topicId, topicName, hobbyName: hobbyMeta?.name ?? hobbyId,
+      });
+    },
+    [navigation, hobbyId, hobbyMeta],
+  );
+
+  // kept for TopicActionSheet (long-press sheet still uses these)
   const handleGoDetail = useCallback(() => {
     if (!actionSheet) return;
-    setActionSheet(null);
-    navigation.navigate(ROUTES.TOPIC_DETAIL, {
-      hobbyId,
-      topicId:   actionSheet.topicId,
-      topicName: actionSheet.topicName,
-      hobbyName: hobbyMeta?.name ?? hobbyId,
-    });
-  }, [navigation, hobbyId, hobbyMeta, actionSheet]);
+    navigateToDetail(actionSheet.topicId, actionSheet.topicName);
+  }, [actionSheet, navigateToDetail]);
 
   const handleGoGraph = useCallback(() => {
     if (!actionSheet) return;
-    setActionSheet(null);
-    navigation.navigate(ROUTES.LEARN_GRAPH, {
-      hobbyId,
-      topicId:   actionSheet.topicId,
-      topicName: actionSheet.topicName,
-      hobbyName: hobbyMeta?.name ?? hobbyId,
-    });
-  }, [navigation, hobbyId, hobbyMeta, actionSheet]);
+    navigateToGraph(actionSheet.topicId, actionSheet.topicName);
+  }, [actionSheet, navigateToGraph]);
 
   const handleDashboard = useCallback(() => {
     navigation.navigate(ROUTES.DASHBOARD);
@@ -201,6 +210,8 @@ export function RoadmapScreen() {
               isLocked={locked}
               onPress={() => handleTopicPress(stage.conceptId, stage.title, index)}
               onLongPress={() => handleTopicLongPress(stage.conceptId, stage.title)}
+              onDetail={() => navigateToDetail(stage.conceptId, stage.title)}
+              onGraph={() => navigateToGraph(stage.conceptId, stage.title)}
             />
           );
         })}

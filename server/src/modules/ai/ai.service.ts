@@ -18,6 +18,7 @@ const SYSTEM_PROMPT_HOBBY = 'You are HobbyForge\'s onboarding assistant. Output 
 const SYSTEM_PROMPT_SIMPLIFY = 'You are HobbyForge\'s tutor. Simplify concepts for the learner. Output strict JSON only.';
 const SYSTEM_PROMPT_ROADMAP = 'You are HobbyForge\'s roadmap generator. Output strict JSON only.';
 const SYSTEM_PROMPT_CARD = 'You are HobbyForge\'s flashcard generator. Output strict JSON only.';
+const SYSTEM_PROMPT_VIDEO_TITLE = 'You are HobbyForge\'s content curator. Output strict JSON only.';
 
 type RoadmapStage = {
   order: number;
@@ -147,7 +148,10 @@ export const aiService = {
     const systemPrompt =
       'You are a hobby name normalizer. Given any hobby input (typos, slang, overly specific variants), ' +
       'return the canonical hobby name and a URL-safe slug. ' +
-      'Examples: "electric guitar" → guitar, "oil painting" → painting, "surfboarding" → surfing. ' +
+      'IMPORTANT RULES:\n' +
+      '1. Only normalize when the hobby is clearly identifiable. Examples: "electric guitar" → guitar, "oil painting" → painting, "surfboarding" → surfing.\n' +
+      '2. Do NOT make semantic leaps for vague or generic words. If the input is ambiguous (e.g. "learning", "stuff", "things", "hobby"), return it cleaned up as-is — do NOT guess a specific hobby.\n' +
+      '3. Never map generic English words to specific technical hobbies (e.g. "learning" must NOT become "ai-ml" or "machine-learning").\n' +
       'Output strict JSON only: { "slug": "kebab-case", "name": "Display Name" }';
     const userPrompt = `Normalize this hobby: "${rawInput}"`;
     try {
@@ -160,6 +164,19 @@ export const aiService = {
         .join(' ');
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       return { slug, name };
+    }
+  },
+
+  async generateVideoTitle(hobbyName: string, videoUrl: string): Promise<{ title: string; creator: string }> {
+    const userPrompt =
+      `A learner is studying "${hobbyName}". They are about to watch a video from this URL: ${videoUrl}\n` +
+      `Generate a short, engaging video title (max 8 words) that sounds relevant to learning ${hobbyName}. ` +
+      `Also generate a plausible creator name (a real-sounding educator or channel).\n` +
+      'Output strict JSON: { "title": "...", "creator": "..." }';
+    try {
+      return await generateJSONWithProviders<{ title: string; creator: string }>(SYSTEM_PROMPT_VIDEO_TITLE, userPrompt);
+    } catch {
+      return { title: `${hobbyName} Fundamentals`, creator: 'HobbyForge' };
     }
   },
 

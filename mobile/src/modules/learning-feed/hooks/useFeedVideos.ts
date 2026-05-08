@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { learningFeedService } from '../services/learningFeed.service';
 import { getTopicById, getTopicByIndex, FALLBACK_VIDEOS } from '../../../shared/constants/curriculum';
 import { queryKeys } from '../../../shared/constants/queryKeys';
+import { aiService } from '../../ai/services/ai.service';
 import type { FeedVideo } from '../types/feed.types';
 
 function curriculumVideosToFeed(videos: typeof FALLBACK_VIDEOS): FeedVideo[] {
@@ -18,6 +19,22 @@ function curriculumVideosToFeed(videos: typeof FALLBACK_VIDEOS): FeedVideo[] {
   }));
 }
 
+async function resolveFallbackWithAiTitles(hobbyId: string): Promise<FeedVideo[]> {
+  const base = curriculumVideosToFeed(FALLBACK_VIDEOS);
+  return Promise.all(
+    base.map(async (video) => {
+      // Only generate titles for Cloudflare/self-hosted videos (no youtubeId)
+      if (!video.videoUrl || video.youtubeId) return video;
+      try {
+        const { title, creator } = await aiService.generateVideoTitle(hobbyId, video.videoUrl);
+        return { ...video, title, creator };
+      } catch {
+        return video;
+      }
+    }),
+  );
+}
+
 function resolveStaticVideos(hobbyId: string, topicId: string, stageIndex: number): FeedVideo[] {
   const topic = getTopicById(hobbyId, topicId) ?? getTopicByIndex(hobbyId, stageIndex);
   const videos = topic?.videos ?? FALLBACK_VIDEOS;
@@ -31,7 +48,13 @@ export function useFeedVideos(hobbyId: string, topicId: string, stageIndex: numb
       try {
         return await learningFeedService.getTopicVideos(hobbyId, topicId);
       } catch {
-        return { id: topicId, name: '', videos: resolveStaticVideos(hobbyId, topicId, stageIndex) };
+        // No static curriculum videos for this hobby — use fallback with AI-generated titles
+        const topic = getTopicById(hobbyId, topicId) ?? getTopicByIndex(hobbyId, stageIndex);
+        if (!topic) {
+          const videos = await resolveFallbackWithAiTitles(hobbyId);
+          return { id: topicId, name: '', videos };
+        }
+        return { id: topicId, name: topic.name, videos: curriculumVideosToFeed(topic.videos) };
       }
     },
     select: (data) => data.videos,

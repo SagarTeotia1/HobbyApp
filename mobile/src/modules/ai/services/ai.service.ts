@@ -29,6 +29,14 @@ export const aiService = {
     );
   },
 
+  async generateVideoTitle(hobbyId: string, videoUrl: string): Promise<{ title: string; creator: string }> {
+    return unwrap(
+      apiClient.get<ApiEnvelope<{ title: string; creator: string }>>('/ai/video-title', {
+        params: { hobbyId, videoUrl },
+      }),
+    );
+  },
+
   async chat(
     message: string,
     hobbyId: string,

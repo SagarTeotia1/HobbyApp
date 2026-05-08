@@ -7,6 +7,8 @@ import { aiController } from './ai.controller';
 export const aiRouter = Router();
 
 aiRouter.post('/hobbies/suggest', asyncHandler(aiController.suggestHobbies));
+aiRouter.get('/video-title', asyncHandler(aiController.generateVideoTitle));
+
 
 aiRouter.use(authMiddleware);
 aiRouter.use(rateLimiter({ max: 20, keyPrefix: 'ai-chat' }));

@@ -11,6 +11,16 @@ export const aiController = {
     return ApiResponse.ok(res, data);
   },
 
+  async generateVideoTitle(req: Request, res: Response): Promise<Response> {
+    const hobbyId = typeof req.query['hobbyId'] === 'string' ? req.query['hobbyId'] : '';
+    const videoUrl = typeof req.query['videoUrl'] === 'string' ? req.query['videoUrl'] : '';
+    if (!hobbyId || !videoUrl) throw new ApiError(400, 'INVALID_PARAMS', 'hobbyId and videoUrl are required');
+    // Use hobbyId as the display name (capitalize and replace dashes)
+    const hobbyName = hobbyId.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const data = await aiService.generateVideoTitle(hobbyName, videoUrl);
+    return ApiResponse.ok(res, data);
+  },
+
   async simplifyCard(req: Request, res: Response): Promise<Response> {
     if (!req.user) throw ApiError.unauthorized();
     const input = simplifyCardSchema.parse(req.body);

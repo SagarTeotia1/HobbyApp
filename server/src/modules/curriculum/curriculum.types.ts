@@ -3,8 +3,8 @@ export interface CurriculumVideo {
   title: string;
   creator: string;
   youtubeId?: string;
-  videoUrl?: string;      // Cloudflare Stream / R2 direct URL
-  thumbnailUrl: string;   // computed — YouTube thumb or explicit
+  videoUrl?: string;
+  thumbnailUrl: string;
   keyInsight: string;
   durationSeconds?: number;
 }

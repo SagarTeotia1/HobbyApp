@@ -19,11 +19,13 @@ function curriculumVideosToFeed(videos: typeof FALLBACK_VIDEOS): FeedVideo[] {
   }));
 }
 
-async function resolveFallbackWithAiTitles(hobbyId: string): Promise<FeedVideo[]> {
-  const base = curriculumVideosToFeed(FALLBACK_VIDEOS);
+async function resolveVideosWithAiTitles(
+  hobbyId: string,
+  videos: typeof FALLBACK_VIDEOS,
+): Promise<FeedVideo[]> {
+  const base = curriculumVideosToFeed(videos);
   return Promise.all(
     base.map(async (video) => {
-      // Only generate titles for Cloudflare/self-hosted videos (no youtubeId)
       if (!video.videoUrl || video.youtubeId) return video;
       try {
         const { title, creator } = await aiService.generateVideoTitle(hobbyId, video.videoUrl);
@@ -51,10 +53,11 @@ export function useFeedVideos(hobbyId: string, topicId: string, stageIndex: numb
         // No static curriculum videos for this hobby — use fallback with AI-generated titles
         const topic = getTopicById(hobbyId, topicId) ?? getTopicByIndex(hobbyId, stageIndex);
         if (!topic) {
-          const videos = await resolveFallbackWithAiTitles(hobbyId);
+          const videos = await resolveVideosWithAiTitles(hobbyId, FALLBACK_VIDEOS);
           return { id: topicId, name: '', videos };
         }
-        return { id: topicId, name: topic.name, videos: curriculumVideosToFeed(topic.videos) };
+        const videos = await resolveVideosWithAiTitles(hobbyId, topic.videos);
+        return { id: topicId, name: topic.name, videos };
       }
     },
     select: (data) => data.videos,

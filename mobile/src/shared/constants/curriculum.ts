@@ -1528,23 +1528,24 @@ export const CURRICULUM: readonly CurriculumHobby[] = [
   },
 ] as const;
 
-export const FALLBACK_VIDEOS: readonly CurriculumVideo[] = [
+const SHARED_CLOUDFLARE_VIDEOS: readonly CurriculumVideo[] = [
   {
-    id: 'fallback-v1',
-    title: 'How to Play Chess Episode 2: Fighting for the King',
-    creator: 'Kids Academy',
+    id: 'cf-video-1',
+    title: 'AI Lesson: Episode 1',
+    creator: 'HobbyForge AI',
     videoUrl: 'https://pub-ef0d64d4483442089d9334d9dc46aff9.r2.dev/hobbyapp/How%20to%20Play%20Chess%20Episode%202%20Fighting%20for%20the%20King%20Kids%20Academy%20-%20Kids%20Academy%20(1080p).mp4',
     keyInsight: 'Every learning journey starts with fundamentals. Watch, absorb the key insight, and move to the next stage.',
   },
   {
-    id: 'fallback-v2',
-    title: 'How to Play Chess Episode 3: Chess Army',
-    creator: 'Kids Academy',
+    id: 'cf-video-2',
+    title: 'AI Lesson: Episode 2',
+    creator: 'HobbyForge AI',
     videoUrl: 'https://pub-ef0d64d4483442089d9334d9dc46aff9.r2.dev/hobbyapp/YTMP3GG_YouTube_How-to-Play-Chess-Episode-3-Chess-Army-L_Media_asb93vAinyM_001_1080p.mp4',
-    thumbnailUrl: 'https://img.youtube.com/vi/asb93vAinyM/hqdefault.jpg',
     keyInsight: 'Break your goal into phases: foundation, skill-building, and mastery. Knowing which phase you are in guides every decision.',
   },
 ] as const;
+
+export const FALLBACK_VIDEOS: readonly CurriculumVideo[] = SHARED_CLOUDFLARE_VIDEOS;
 
 export function getHobbyById(id: string): CurriculumHobby | undefined {
   return CURRICULUM.find((h) => h.id === id);
@@ -1552,14 +1553,16 @@ export function getHobbyById(id: string): CurriculumHobby | undefined {
 
 export function getTopicById(hobbyId: string, topicId: string): CurriculumTopic | undefined {
   const hobby = getHobbyById(hobbyId);
-  return hobby?.topics.find((t) => t.id === topicId);
+  const topic = hobby?.topics.find((t) => t.id === topicId);
+  return topic ? { ...topic, videos: SHARED_CLOUDFLARE_VIDEOS } : undefined;
 }
 
 export function getTopicByIndex(hobbyId: string, index: number): CurriculumTopic | undefined {
   const hobby = getHobbyById(hobbyId);
   if (!hobby) return undefined;
   const clamped = Math.max(0, Math.min(index, hobby.topics.length - 1));
-  return hobby.topics[clamped];
+  const topic = hobby.topics[clamped];
+  return { ...topic, videos: SHARED_CLOUDFLARE_VIDEOS };
 }
 
 export function getTotalTopics(hobbyId: string): number {

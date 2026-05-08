@@ -1,4 +1,4 @@
-import type { DifficultyLevel, QuizQuestion } from '../../shared/types/common.types';
+import type { DifficultyLevel } from '../../shared/types/common.types';
 
 export interface QuizGenerationParams {
   hobbyId: string;

@@ -25,6 +25,10 @@ export function createApp(): Application {
   app.use(express.urlencoded({ extended: true }));
   app.use(requestLogger);
 
+  app.get('/', (_req, res) => {
+    ApiResponse.ok(res, { status: 'ok', message: 'HobbyForge API is running' });
+  });
+
   app.get('/health', (_req, res) => {
     ApiResponse.ok(res, { status: 'ok', timestamp: new Date().toISOString() });
   });

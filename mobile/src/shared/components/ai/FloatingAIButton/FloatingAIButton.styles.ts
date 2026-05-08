@@ -2,10 +2,15 @@ import { StyleSheet } from 'react-native';
 import { colors, radius } from '../../../../app/theme';
 
 export const styles = StyleSheet.create({
-  fab: {
+  fabContainer: {
     position: 'absolute',
-    bottom: 32,
-    right: 20,
+    left: 0,
+    top: 0,
+    width: 56,
+    height: 56,
+    zIndex: 100,
+  },
+  fabButton: {
     width: 56,
     height: 56,
     borderRadius: radius.pill,
@@ -19,7 +24,6 @@ export const styles = StyleSheet.create({
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 8,
-    zIndex: 100,
   },
   fabPressed: {
     transform: [{ translateX: 4 }, { translateY: 4 }],

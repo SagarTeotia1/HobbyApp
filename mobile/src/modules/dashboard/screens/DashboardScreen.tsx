@@ -6,7 +6,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton/FloatingAIButton';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
-import { getHobbyById, getTotalTopics } from '../../../shared/constants/curriculum';
+import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
+import { getHobbyById } from '../../../shared/constants/curriculum';
 import { GAME_CONFIG } from '../../../shared/constants/gameConfig';
 import { colors, spacing, radius } from '../../../app/theme';
 import type { AppStackParamList } from '../../../app/navigation/types';
@@ -23,10 +24,14 @@ export function DashboardScreen() {
   const streak = useUserStore((s) => s.streak);
   const skillLevel = useUserStore((s) => s.skillLevel);
 
-  const getCompletedCount = useRoadmapStore((s) => s.getCompletedTopicCount);
+  const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
   const resetRoadmap = useRoadmapStore((s) => s.reset);
-  const completedTopics = getCompletedCount(hobbyId);
-  const totalTopics = getTotalTopics(hobbyId);
+  const { roadmap } = useRoadmap(hobbyId);
+  const stages = roadmap?.stages ?? [];
+  const totalTopics = stages.length;
+  const completedTopics = stages.filter(
+    (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
+  ).length;
   const hobby = getHobbyById(hobbyId);
 
   const xpInLevel = xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL;
@@ -91,7 +96,7 @@ export function DashboardScreen() {
             <Text style={styles.statLabel}>Topics Done</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{totalTopics - completedTopics}</Text>
+            <Text style={styles.statValue}>{Math.max(0, totalTopics - completedTopics)}</Text>
             <Text style={styles.statLabel}>Remaining</Text>
           </View>
         </View>

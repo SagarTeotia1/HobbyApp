@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../store/roadmap.store';
-import { useRoadmap } from '../hooks/useRoadmap';
+import { useRoadmap, invalidateRoadmapCache } from '../hooks/useRoadmap';
 import { roadmapService } from '../services/roadmap.service';
 import { RoadmapNode } from '../components/RoadmapNode/RoadmapNode';
 import { TopicActionSheet } from '../components/TopicActionSheet';
@@ -23,6 +23,13 @@ import { colors, spacing, radius } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
 import type { AppStackParamList } from '../../../app/navigation/types';
 import type { RoadmapStage } from '../types/roadmap.types';
+import type { DifficultyLevel } from '../../../shared/types/card.types';
+
+const SKILL_PROGRESSION: Record<DifficultyLevel, DifficultyLevel | null> = {
+  beginner: 'intermediate',
+  intermediate: 'advanced',
+  advanced: null,
+};
 
 type Nav = NativeStackNavigationProp<AppStackParamList, typeof ROUTES.ROADMAP>;
 
@@ -36,19 +43,33 @@ export function RoadmapScreen() {
   const setHobby = useUserStore((s) => s.setHobby);
 
   const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
-  const getCompletedCount = useRoadmapStore((s) => s.getCompletedTopicCount);
 
-  const { roadmap, loading: roadmapLoading } = useRoadmap(hobbyId);
+  const { roadmap, loading: roadmapLoading, refetch: refetchRoadmap } = useRoadmap(hobbyId);
 
   const hobbyMeta = CURRICULUM.find((c) => c.id === hobbyId);
 
   const stages: RoadmapStage[] = roadmap?.stages ?? [];
-  const completedCount = getCompletedCount(hobbyId);
-  const totalCount = stages.length || 1;
+  const completedCount = stages.filter(
+    (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
+  ).length;
+  const totalCount = stages.length;
+
+  const setPreferences = useUserStore((s) => s.setPreferences);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [generatingHobby, setGeneratingHobby] = useState(false);
   const [actionSheet, setActionSheet] = useState<{ topicId: string; topicName: string } | null>(null);
+  const [levelUpVisible, setLevelUpVisible] = useState(false);
+
+  const nextSkillLevel = SKILL_PROGRESSION[skillLevel] ?? null;
+
+  useEffect(() => {
+    if (!roadmapLoading && totalCount > 0 && completedCount === totalCount) {
+      setLevelUpVisible(true);
+    } else if (completedCount < totalCount) {
+      setLevelUpVisible(false);
+    }
+  }, [completedCount, totalCount, roadmapLoading]);
 
   const handleTopicPress = useCallback(
     (topicId: string, topicName: string, stageIndex: number) => {
@@ -99,6 +120,22 @@ export function RoadmapScreen() {
     navigation.navigate(ROUTES.DASHBOARD);
   }, [navigation]);
 
+  const handleLevelUp = useCallback(async () => {
+    if (!nextSkillLevel) return;
+    setLevelUpVisible(false);
+    setGeneratingHobby(true);
+    setPreferences(dailyTimeMinutes, nextSkillLevel);
+    invalidateRoadmapCache(hobbyId);
+    try {
+      await roadmapService.generateRoadmap(hobbyId, nextSkillLevel, dailyTimeMinutes);
+    } catch {
+      // generation failed — refetch will show empty state
+    } finally {
+      setGeneratingHobby(false);
+      refetchRoadmap();
+    }
+  }, [nextSkillLevel, hobbyId, dailyTimeMinutes, setPreferences, refetchRoadmap]);
+
   const handleChangeHobby = useCallback(
     async (newHobbyId: string) => {
       if (newHobbyId === hobbyId) {
@@ -106,6 +143,7 @@ export function RoadmapScreen() {
         return;
       }
       setGeneratingHobby(true);
+      invalidateRoadmapCache(newHobbyId);
       try {
         await roadmapService.generateRoadmap(newHobbyId, skillLevel, dailyTimeMinutes);
         setHobby(newHobbyId);
@@ -131,7 +169,7 @@ export function RoadmapScreen() {
     return false;
   };
 
-  const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const progressPct = totalCount > 0 ? Math.min((completedCount / totalCount) * 100, 100) : 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -182,6 +220,40 @@ export function RoadmapScreen() {
         showsVerticalScrollIndicator={false}>
 
         <Text style={styles.sectionTitle}>Your Learning Roadmap</Text>
+
+        {levelUpVisible && nextSkillLevel && (
+          <View style={styles.levelUpCard}>
+            <Text style={styles.levelUpEmoji}>🏆</Text>
+            <Text style={styles.levelUpTitle}>Roadmap Complete!</Text>
+            <Text style={styles.levelUpBody}>
+              You've mastered all {totalCount} topics at {skillLevel} level.{'\n'}
+              Ready to unlock the <Text style={styles.levelUpHighlight}>{nextSkillLevel}</Text> roadmap?
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.levelUpBtn, pressed && styles.levelUpBtnPressed]}
+              onPress={handleLevelUp}>
+              <Text style={styles.levelUpBtnText}>
+                Generate {nextSkillLevel.charAt(0).toUpperCase() + nextSkillLevel.slice(1)} Roadmap →
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => setLevelUpVisible(false)}>
+              <Text style={styles.levelUpDismiss}>Maybe later</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {levelUpVisible && !nextSkillLevel && (
+          <View style={styles.levelUpCard}>
+            <Text style={styles.levelUpEmoji}>🎓</Text>
+            <Text style={styles.levelUpTitle}>Mastery Achieved!</Text>
+            <Text style={styles.levelUpBody}>
+              You've completed all levels for this hobby. You're a master!
+            </Text>
+            <Pressable onPress={() => setLevelUpVisible(false)}>
+              <Text style={styles.levelUpDismiss}>Dismiss</Text>
+            </Pressable>
+          </View>
+        )}
 
         {roadmapLoading && (
           <View style={styles.loadingWrap}>
@@ -400,4 +472,56 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
 
   bottomSpacer: { height: 120 },
+
+  // ── Level-up banner ───────────────────────────────────────────────
+  levelUpCard: {
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.yellow,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 4, height: 4 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 4,
+    gap: spacing.sm,
+  },
+  levelUpEmoji: { fontSize: 40 },
+  levelUpTitle: { fontSize: 20, fontWeight: '900', color: colors.text, textAlign: 'center' },
+  levelUpBody: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+    lineHeight: 20,
+    opacity: 0.85,
+  },
+  levelUpHighlight: { fontWeight: '900', color: colors.primary },
+  levelUpBtn: {
+    marginTop: spacing.xs,
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+    width: '100%',
+    alignItems: 'center',
+  },
+  levelUpBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  levelUpBtnText: { fontSize: 14, fontWeight: '900', color: colors.textInverse },
+  levelUpDismiss: { fontSize: 12, fontWeight: '600', color: colors.text, opacity: 0.6, marginTop: spacing.xs },
 });

@@ -1,15 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRoute, type RouteProp } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlanGeneratingAnimation } from '../components/PlanGeneratingAnimation/PlanGeneratingAnimation';
 import { useOnboarding } from '../hooks/useOnboarding';
-import { colors, spacing } from '../../../app/theme';
+import { colors, spacing, radius } from '../../../app/theme';
 import type { OnboardingStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
-import { Typography } from '../../../shared/components/ui/Typography/Typography';
-import { Button } from '../../../shared/components/ui/Button/Button';
 
 type ScreenRoute = RouteProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_PLAN_GENERATION>;
 type Nav = NativeStackNavigationProp<OnboardingStackParamList, typeof ROUTES.ONBOARDING_PLAN_GENERATION>;
@@ -20,55 +19,48 @@ export function PlanGenerationScreen() {
   const onboardingMutation = useOnboarding();
   const startedRef = useRef(false);
 
+  const { hobbySlug, dailyMinutes, skillLevel } = route.params;
+
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    onboardingMutation.mutate({
-      hobbySlug: route.params.hobbySlug,
-      dailyMinutes: route.params.dailyMinutes,
-      skillLevel: route.params.skillLevel,
-    });
-  }, [onboardingMutation, route.params.dailyMinutes, route.params.hobbySlug, route.params.skillLevel]);
+    onboardingMutation.mutate({ hobbySlug, dailyMinutes, skillLevel });
+  }, [onboardingMutation, hobbySlug, dailyMinutes, skillLevel]);
 
-  useEffect(() => {
-    if (onboardingMutation.isSuccess) {
-      // Root navigator switches automatically via user store flag.
-      return;
-    }
-  }, [navigation, onboardingMutation.isSuccess]);
+  if (onboardingMutation.isError) {
+    const msg =
+      onboardingMutation.error instanceof Error
+        ? onboardingMutation.error.message
+        : 'Could not build roadmap. Check your connection and try again.';
 
-  const errorMessage =
-    onboardingMutation.error instanceof Error
-      ? onboardingMutation.error.message
-      : 'Could not build roadmap. Check backend connectivity and try again.';
+    return (
+      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorMsg}>{msg}</Text>
+
+          <Pressable
+            style={({ pressed }) => [styles.retryBtn, pressed && styles.retryBtnPressed]}
+            onPress={() => {
+              startedRef.current = false;
+              onboardingMutation.mutate({ hobbySlug, dailyMinutes, skillLevel });
+            }}>
+            <Text style={styles.retryBtnText}>Try Again</Text>
+          </Pressable>
+
+          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Text style={styles.backBtnText}>← Go Back</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.root}>
-      <PlanGeneratingAnimation hobbyName={route.params.hobbySlug} />
-      {onboardingMutation.isPending ? (
-        <Typography variant="caption" muted>
-          This can take a few seconds. We are preparing your first 10 cards.
-        </Typography>
-      ) : null}
-      {onboardingMutation.isError ? (
-        <View style={styles.errorBox}>
-          <Typography variant="body" color={colors.danger}>
-            {errorMessage}
-          </Typography>
-          <Button
-            label="Retry"
-            onPress={() =>
-              onboardingMutation.mutate({
-                hobbySlug: route.params.hobbySlug,
-                dailyMinutes: route.params.dailyMinutes,
-                skillLevel: route.params.skillLevel,
-              })
-            }
-          />
-          <Button label="Back" variant="secondary" onPress={() => navigation.goBack()} />
-        </View>
-      ) : null}
-    </View>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <PlanGeneratingAnimation hobbyName={hobbySlug} />
+    </SafeAreaView>
   );
 }
 
@@ -76,14 +68,65 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+
+  // ── Error state ───────────────────────────────────────────────────
+  errorContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
     gap: spacing.md,
-    padding: spacing.xl,
   },
-  errorBox: {
+  errorIcon: {
+    fontSize: 56,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
+  errorMsg: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  retryBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 4, height: 4 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 4,
     width: '100%',
-    gap: spacing.md,
-    marginTop: spacing.md,
+    alignItems: 'center',
+  },
+  retryBtnPressed: {
+    transform: [{ translateX: 4 }, { translateY: 4 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  retryBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.textInverse,
+  },
+  backBtn: {
+    paddingVertical: spacing.sm,
+  },
+  backBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textDim,
   },
 });

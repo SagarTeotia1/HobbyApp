@@ -6,9 +6,10 @@ import { AIChatInterface } from '../AIChatInterface/AIChatInterface';
 interface Props {
   hobbyId: string;
   context?: string;
+  bottomOffset?: number;
 }
 
-export function FloatingAIButton({ hobbyId }: Props) {
+export function FloatingAIButton({ hobbyId, bottomOffset = 0 }: Props) {
   const [open, setOpen] = useState(false);
 
   const handleOpen = useCallback(() => setOpen(true), []);
@@ -24,7 +25,7 @@ export function FloatingAIButton({ hobbyId }: Props) {
   return (
     <>
       <Pressable
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+        style={({ pressed }) => [styles.fab, { bottom: 32 + bottomOffset }, pressed && styles.fabPressed]}
         onPress={handleOpen}>
         <Text style={styles.fabEmoji}>🤖</Text>
       </Pressable>

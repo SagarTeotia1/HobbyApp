@@ -9,11 +9,11 @@ export const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+
+  // ── Title block ───────────────────────────────────────────────────
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.md,
   },
   titleBlock: { flex: 1 },
   videoTitle: {
@@ -39,24 +39,15 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textMuted,
   },
-  progressPill: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    backgroundColor: colors.surface,
-  },
-  progressPillText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.text,
-  },
+
+  // ── Divider ───────────────────────────────────────────────────────
   divider: {
     height: 2,
     backgroundColor: colors.border,
     borderRadius: radius.pill,
   },
+
+  // ── Key insight ───────────────────────────────────────────────────
   insightCard: {
     borderWidth: 2,
     borderColor: colors.border,
@@ -83,58 +74,39 @@ export const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 20,
   },
-  actionsRow: {
+
+  // ── Detail / Graph row ────────────────────────────────────────────
+  actionRow: {
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  btnGotIt: {
+  actionBtn: {
     flex: 1,
     borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 4, height: 4 },
+    shadowOffset: { width: 2, height: 2 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 4,
+    elevation: 2,
   },
-  btnGotItPressed: {
-    transform: [{ translateX: 4 }, { translateY: 4 }],
+  actionBtnGraph: {
+    backgroundColor: colors.primaryLight,
+  },
+  actionBtnPressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
   },
-  btnGotItText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: colors.textInverse,
-  },
-  btnNext: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.yellow,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 4, height: 4 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 4,
-  },
-  btnNextPressed: {
-    transform: [{ translateX: 4 }, { translateY: 4 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  btnNextText: {
-    fontSize: 14,
-    fontWeight: '900',
+  actionBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
     color: colors.text,
   },
+
 });

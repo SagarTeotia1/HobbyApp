@@ -6,23 +6,11 @@ interface Props {
   videoTitle: string;
   creator: string;
   keyInsight: string;
-  currentIndex: number;
-  totalVideos: number;
-  onGotIt: () => void;
-  onNext: () => void;
-  isLast: boolean;
+  onDetail?: () => void;
+  onGraph?: () => void;
 }
 
-export function VideoFlashcard({
-  videoTitle,
-  creator,
-  keyInsight,
-  currentIndex,
-  totalVideos,
-  onGotIt,
-  onNext,
-  isLast,
-}: Props) {
+export function VideoFlashcard({ videoTitle, creator, keyInsight, onDetail, onGraph }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.topRow}>
@@ -33,29 +21,26 @@ export function VideoFlashcard({
             <Text style={styles.creator}>{creator}</Text>
           </View>
         </View>
-        <View style={styles.progressPill}>
-          <Text style={styles.progressPillText}>{currentIndex + 1}/{totalVideos}</Text>
-        </View>
       </View>
 
       <View style={styles.divider} />
 
+      <View style={styles.actionRow}>
+        <Pressable
+          style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+          onPress={onDetail}>
+          <Text style={styles.actionBtnText}>🧠 Detail</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.actionBtn, styles.actionBtnGraph, pressed && styles.actionBtnPressed]}
+          onPress={onGraph}>
+          <Text style={styles.actionBtnText}>🕸️ Graph</Text>
+        </Pressable>
+      </View>
+
       <View style={styles.insightCard}>
         <Text style={styles.insightLabel}>💡 Key Insight</Text>
         <Text style={styles.insightText}>{keyInsight}</Text>
-      </View>
-
-      <View style={styles.actionsRow}>
-        <Pressable
-          style={({ pressed }) => [styles.btnGotIt, pressed && styles.btnGotItPressed]}
-          onPress={onGotIt}>
-          <Text style={styles.btnGotItText}>✓ Got It</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.btnNext, pressed && styles.btnNextPressed]}
-          onPress={onNext}>
-          <Text style={styles.btnNextText}>{isLast ? 'Finish 🏁' : 'Next →'}</Text>
-        </Pressable>
       </View>
     </View>
   );

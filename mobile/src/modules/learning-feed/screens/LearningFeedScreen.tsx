@@ -8,7 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VideoPlayer } from '../components/VideoPlayer/VideoPlayer';
@@ -20,6 +20,7 @@ import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
 import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { useFeedVideos } from '../hooks/useFeedVideos';
+import { CURRICULUM } from '../../../shared/constants/curriculum';
 import { colors, spacing, radius } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
 import type { AppStackParamList } from '../../../app/navigation/types';
@@ -28,12 +29,14 @@ type Nav = NativeStackNavigationProp<AppStackParamList, typeof ROUTES.FEED>;
 type Route = RouteProp<AppStackParamList, typeof ROUTES.FEED>;
 
 const XP_PER_VIDEO = 25;
+const BOTTOM_BAR_HEIGHT = 72;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const VIDEO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.45);
 
 export function LearningFeedScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
+  const insets = useSafeAreaInsets();
   const { hobbyId, topicId, topicName, stageIndex } = route.params;
 
   const addXP = useUserStore((s) => s.addXP);
@@ -48,54 +51,68 @@ export function LearningFeedScreen() {
   ).length;
   const totalTopics = roadmapStages.length;
 
+  const hobbyMeta = CURRICULUM.find((c) => c.id === hobbyId);
+  const hobbyName = hobbyMeta?.name ?? hobbyId;
+
   const { data: videos = [], isLoading } = useFeedVideos(hobbyId, topicId, stageIndex);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [xpDelta, setXpDelta] = useState(0);
-  const [sessionXP, setSessionXP] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const watchedSet = useRef(new Set<number>());
-  const sessionWatched = useRef(0);
 
+  const isLast = currentIndex === videos.length - 1;
   const currentVideo = videos[currentIndex];
 
   const awardXP = useCallback(() => {
     addXP(XP_PER_VIDEO);
     setXpDelta(XP_PER_VIDEO);
-    setSessionXP((prev) => prev + XP_PER_VIDEO);
     markVideoWatched(hobbyId, topicId, videos.length);
     watchedSet.current.add(currentIndex);
-    sessionWatched.current += 1;
     setTimeout(() => setXpDelta(0), 1000);
   }, [addXP, markVideoWatched, hobbyId, topicId, videos.length, currentIndex]);
 
-  const finishSession = useCallback(
-    (extraXP = 0) => {
-      navigation.replace(ROUTES.PROGRESS, {
+  const goNextTopic = useCallback(() => {
+    const currentStageIdx = roadmapStages.findIndex((s) => s.conceptId === topicId);
+    const nextStage = roadmapStages[currentStageIdx + 1];
+    if (nextStage) {
+      navigation.replace(ROUTES.FEED, {
         hobbyId,
-        videosWatched: sessionWatched.current,
-        xpEarned: sessionXP + extraXP,
+        topicId: nextStage.conceptId,
+        topicName: nextStage.title,
+        stageIndex: currentStageIdx + 1,
       });
-    },
-    [navigation, hobbyId, sessionXP],
-  );
+    } else {
+      navigation.navigate(ROUTES.ROADMAP);
+    }
+  }, [roadmapStages, topicId, hobbyId, navigation]);
 
-  const handleGotIt = useCallback(() => {
+  const handleContinue = useCallback(() => {
     awardXP();
-    if (currentIndex < videos.length - 1) {
+    if (!isLast) {
       setCurrentIndex((i) => i + 1);
     } else {
-      finishSession(XP_PER_VIDEO);
+      goNextTopic();
     }
-  }, [awardXP, currentIndex, videos.length, finishSession]);
+  }, [awardXP, isLast, goNextTopic]);
 
-  const handleNext = useCallback(() => {
-    if (currentIndex < videos.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    } else {
-      finishSession();
-    }
-  }, [currentIndex, videos.length, finishSession]);
+  const handleBreak = useCallback(() => {
+    navigation.replace(ROUTES.PROGRESS, {
+      hobbyId,
+      videosWatched: watchedSet.current.size,
+      xpEarned: watchedSet.current.size * XP_PER_VIDEO,
+    });
+  }, [navigation, hobbyId]);
+
+  const handleDetail = useCallback(() => {
+    navigation.navigate(ROUTES.TOPIC_DETAIL, { hobbyId, topicId, topicName, hobbyName });
+  }, [navigation, hobbyId, topicId, topicName, hobbyName]);
+
+  const handleGraph = useCallback(() => {
+    navigation.navigate(ROUTES.LEARN_GRAPH, { hobbyId, topicId, topicName, hobbyName });
+  }, [navigation, hobbyId, topicId, topicName, hobbyName]);
+
+  const bottomBarHeight = BOTTOM_BAR_HEIGHT + insets.bottom;
 
   if (isLoading) {
     return (
@@ -110,9 +127,15 @@ export function LearningFeedScreen() {
     return (
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No videos for this topic.</Text>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backBtnText}>Go Back</Text>
+          <Text style={styles.emptyTitle}>No videos for this topic</Text>
+          <Text style={styles.emptyText}>Move on to the next topic.</Text>
+          <Pressable
+            style={({ pressed }) => [styles.nextTopicBtn, pressed && styles.nextTopicBtnPressed]}
+            onPress={goNextTopic}>
+            <Text style={styles.nextTopicBtnText}>Next Topic →</Text>
+          </Pressable>
+          <Pressable onPress={() => navigation.goBack()}>
+            <Text style={styles.emptyBack}>← Go Back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -128,17 +151,9 @@ export function LearningFeedScreen() {
             onPress={() => navigation.goBack()}>
             <Text style={styles.backBtnText}>← Back</Text>
           </Pressable>
-
           <View style={styles.topicPill}>
             <Text style={styles.topicPillText} numberOfLines={1}>{topicName}</Text>
           </View>
-
-          {/* Playlist button */}
-          <Pressable
-            style={({ pressed }) => [styles.playlistBtn, pressed && styles.playlistBtnPressed]}
-            onPress={() => setSheetOpen(true)}>
-            <Text style={styles.playlistBtnText}>☰</Text>
-          </Pressable>
         </View>
 
         <FeedXPBar
@@ -154,27 +169,45 @@ export function LearningFeedScreen() {
           youtubeId={currentVideo.youtubeId}
           videoUrl={currentVideo.videoUrl}
         />
-        <View style={styles.videoCounterOverlay}>
-          <Text style={styles.videoCounter}>{currentIndex + 1} / {videos.length}</Text>
-        </View>
+        <Pressable
+          style={({ pressed }) => [styles.playlistOverlay, pressed && styles.playlistOverlayPressed]}
+          onPress={() => setSheetOpen(true)}>
+          <Text style={styles.playlistOverlayText}>☰ {currentIndex + 1}/{videos.length}</Text>
+        </Pressable>
       </View>
 
+      {/* Scrollable flashcard content */}
       <ScrollView
         style={styles.flashcardScroll}
-        contentContainerStyle={styles.flashcardScrollContent}
+        contentContainerStyle={[styles.flashcardScrollContent, { paddingBottom: bottomBarHeight + 16 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <VideoFlashcard
           videoTitle={currentVideo.title}
           creator={currentVideo.creator}
           keyInsight={currentVideo.keyInsight}
-          currentIndex={currentIndex}
-          totalVideos={videos.length}
-          onGotIt={handleGotIt}
-          onNext={handleNext}
-          isLast={currentIndex === videos.length - 1}
+          onDetail={handleDetail}
+          onGraph={handleGraph}
         />
       </ScrollView>
+
+      {/* Sticky bottom nav bar */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.sm }]}>
+        <Pressable
+          style={({ pressed }) => [styles.breakBtn, pressed && styles.breakBtnPressed]}
+          onPress={handleBreak}>
+          <Text style={styles.breakBtnText}>☕ Need Break</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.continueBtn, pressed && styles.continueBtnPressed]}
+          onPress={handleContinue}>
+          <Text style={styles.continueBtnText}>
+            {isLast ? 'Next Topic →' : '▶ Next Video'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <FloatingAIButton hobbyId={hobbyId} context={topicId} bottomOffset={bottomBarHeight} />
 
       <VideoListSheet
         visible={sheetOpen}
@@ -185,8 +218,6 @@ export function LearningFeedScreen() {
         onSelect={setCurrentIndex}
         onClose={() => setSheetOpen(false)}
       />
-
-      <FloatingAIButton hobbyId={hobbyId} context={topicId} />
     </View>
   );
 }
@@ -239,46 +270,109 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   topicPillText: { fontSize: 12, fontWeight: '800', color: colors.textInverse },
-  playlistBtn: {
-    width: 36,
-    height: 36,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.yellow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 2, height: 2 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 2,
-  },
-  playlistBtnPressed: {
-    transform: [{ translateX: 2 }, { translateY: 2 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  playlistBtnText: { fontSize: 16, fontWeight: '900', color: colors.text },
   videoContainer: {
     width: '100%',
     backgroundColor: '#000',
     borderBottomWidth: 3,
     borderBottomColor: colors.border,
   },
-  videoCounterOverlay: {
+  playlistOverlay: {
     position: 'absolute',
     top: spacing.sm,
     right: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
-  videoCounter: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  playlistOverlayPressed: { opacity: 0.7 },
+  playlistOverlayText: { color: '#fff', fontSize: 12, fontWeight: '900' },
   flashcardScroll: { flex: 1 },
-  flashcardScrollContent: { paddingBottom: 100 },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
-  emptyText: { fontSize: 16, fontWeight: '700', color: colors.textMuted },
+  flashcardScrollContent: { },
+
+  // ── Sticky bottom bar ─────────────────────────────────────────────
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.bg,
+    borderTopWidth: 2,
+    borderTopColor: colors.border,
+  },
+  breakBtn: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  breakBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  breakBtnText: { fontSize: 13, fontWeight: '800', color: colors.textMuted },
+  continueBtn: {
+    flex: 2,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  continueBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  continueBtnText: { fontSize: 13, fontWeight: '900', color: colors.textInverse },
+
+  // ── Empty state ───────────────────────────────────────────────────
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, gap: spacing.md },
+  emptyTitle: { fontSize: 20, fontWeight: '900', color: colors.text },
+  emptyText: { fontSize: 14, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
+  nextTopicBtn: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  nextTopicBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  nextTopicBtnText: { fontSize: 15, fontWeight: '900', color: colors.textInverse },
+  emptyBack: { fontSize: 13, fontWeight: '700', color: colors.textMuted },
 });

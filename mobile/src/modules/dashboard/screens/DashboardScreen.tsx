@@ -8,7 +8,6 @@ import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
 import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { getHobbyById } from '../../../shared/constants/curriculum';
-import { GAME_CONFIG } from '../../../shared/constants/gameConfig';
 import { colors, spacing, radius } from '../../../app/theme';
 import type { AppStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
@@ -33,9 +32,6 @@ export function DashboardScreen() {
     (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
   ).length;
   const hobby = getHobbyById(hobbyId);
-
-  const xpInLevel = xp % GAME_CONFIG.LEVELS.XP_PER_LEVEL;
-  const progressToNextLevel = xpInLevel / GAME_CONFIG.LEVELS.XP_PER_LEVEL;
 
   const handleBack = () => navigation.navigate(ROUTES.ROADMAP);
 
@@ -98,17 +94,6 @@ export function DashboardScreen() {
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{Math.max(0, totalTopics - completedTopics)}</Text>
             <Text style={styles.statLabel}>Remaining</Text>
-          </View>
-        </View>
-
-        {/* Level progress */}
-        <View style={styles.levelCard}>
-          <View style={styles.levelHeader}>
-            <Text style={styles.levelTitle}>Level {level} → {level + 1}</Text>
-            <Text style={styles.levelXP}>{xpInLevel} / {GAME_CONFIG.LEVELS.XP_PER_LEVEL} XP</Text>
-          </View>
-          <View style={styles.levelBarOuter}>
-            <View style={[styles.levelBarInner, { width: `${progressToNextLevel * 100}%` }]} />
           </View>
         </View>
 
@@ -232,31 +217,6 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 22, fontWeight: '900', color: colors.text },
   statLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
-  levelCard: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.bgElevated,
-    padding: spacing.lg,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 3,
-    gap: spacing.sm,
-  },
-  levelHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  levelTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
-  levelXP: { fontSize: 13, fontWeight: '700', color: colors.textMuted },
-  levelBarOuter: {
-    height: 12,
-    backgroundColor: colors.surface,
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-  },
-  levelBarInner: { height: '100%', backgroundColor: colors.yellow, borderRadius: radius.pill },
   roadmapCard: {
     borderWidth: 2,
     borderColor: colors.border,

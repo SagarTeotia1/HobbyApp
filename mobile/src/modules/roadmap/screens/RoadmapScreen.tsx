@@ -173,9 +173,10 @@ export function RoadmapScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* Hero header */}
+      {/* Hero card — all top info + progress + actions */}
       <View style={styles.hero}>
-        <View style={styles.heroLeft}>
+        {/* Row 1: emoji + name/xp + action buttons */}
+        <View style={styles.heroTop}>
           <View style={styles.emojiWrap}>
             <Text style={styles.hobbyEmoji}>{hobbyMeta?.emoji ?? '🎯'}</Text>
           </View>
@@ -185,31 +186,31 @@ export function RoadmapScreen() {
             </Text>
             <Text style={styles.levelBadge}>Lv {level} · {xp} XP</Text>
           </View>
+          <View style={styles.heroBtns}>
+            <Pressable
+              style={({ pressed }) => [styles.heroBtn, styles.heroBtnYellow, pressed && styles.heroBtnPressed]}
+              onPress={() => setPickerOpen(true)}>
+              <Text style={styles.heroBtnIcon}>🔄</Text>
+              <Text style={styles.heroBtnLabel}>Change</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.heroBtn, styles.heroBtnWhite, pressed && styles.heroBtnPressed]}
+              onPress={handleDashboard}>
+              <Text style={styles.heroBtnIcon}>📊</Text>
+              <Text style={styles.heroBtnLabel}>Stats</Text>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Stats button — filled teal */}
-        <Pressable
-          style={({ pressed }) => [styles.statsBtn, pressed && styles.statsBtnPressed]}
-          onPress={handleDashboard}>
-          <Text style={styles.statsBtnText}>📊 Stats</Text>
-        </Pressable>
-      </View>
-
-      {/* Change Hobby pill — yellow, prominent */}
-      <Pressable
-        style={({ pressed }) => [styles.changeHobbyPill, pressed && styles.changeHobbyPillPressed]}
-        onPress={() => setPickerOpen(true)}>
-        <Text style={styles.changeHobbyText}>🔄 Change Hobby</Text>
-      </Pressable>
-
-      {/* Progress strip */}
-      <View style={styles.progressStrip}>
-        <View style={styles.progressInfo}>
-          <Text style={styles.progressLabel}>{completedCount}/{totalCount} topics</Text>
-          <Text style={styles.progressPct}>{Math.round(progressPct)}%</Text>
-        </View>
-        <View style={styles.progressBarOuter}>
-          <View style={[styles.progressBarInner, { width: `${progressPct}%` }]} />
+        {/* Row 2: progress bar */}
+        <View style={styles.heroProgress}>
+          <View style={styles.heroProgressMeta}>
+            <Text style={styles.heroProgressLabel}>{completedCount}/{totalCount} topics</Text>
+            <Text style={styles.heroProgressPct}>{Math.round(progressPct)}%</Text>
+          </View>
+          <View style={styles.heroBarOuter}>
+            <View style={[styles.heroBarInner, { width: `${progressPct}%` }]} />
+          </View>
         </View>
       </View>
 
@@ -315,11 +316,8 @@ export function RoadmapScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 
-  // ── Hero ──────────────────────────────────────────────────────────
+  // ── Hero card ─────────────────────────────────────────────────────
   hero: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     backgroundColor: colors.primary,
@@ -327,22 +325,23 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
     shadowColor: colors.shadow,
     shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 4,
+    gap: spacing.sm,
   },
-  heroLeft: {
+  heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    flex: 1,
   },
   emojiWrap: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: radius.sm,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1.5,
@@ -350,10 +349,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hobbyEmoji: { fontSize: 26 },
+  hobbyEmoji: { fontSize: 24 },
   heroText: { flex: 1 },
   hobbyName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: colors.textInverse,
     letterSpacing: -0.3,
@@ -361,95 +360,66 @@ const styles = StyleSheet.create({
   levelBadge: {
     fontSize: 11,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
-    letterSpacing: 0.3,
+    color: 'rgba(255,255,255,0.65)',
+    marginTop: 1,
   },
-
-  // ── Stats button ──────────────────────────────────────────────────
-  statsBtn: {
-    backgroundColor: colors.yellow,
+  heroBtns: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  heroBtn: {
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 2, height: 2 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 3,
+    elevation: 2,
+    minWidth: 56,
   },
-  statsBtnPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
+  heroBtnYellow: { backgroundColor: colors.yellow },
+  heroBtnWhite: { backgroundColor: 'rgba(255,255,255,0.9)' },
+  heroBtnPressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
   },
-  statsBtnText: { fontWeight: '900', fontSize: 13, color: colors.text },
+  heroBtnIcon: { fontSize: 14 },
+  heroBtnLabel: { fontSize: 9, fontWeight: '800', color: colors.text, marginTop: 1, letterSpacing: 0.3 },
 
-  // ── Change Hobby pill ──────────────────────────────────────────────
-  changeHobbyPill: {
-    alignSelf: 'center',
-    marginTop: spacing.md,
-    backgroundColor: colors.yellow,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 3,
-  },
-  changeHobbyPillPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  changeHobbyText: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: colors.text,
-    letterSpacing: 0.2,
-  },
-
-  // ── Progress strip ────────────────────────────────────────────────
-  progressStrip: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-  },
-  progressInfo: {
+  // ── Hero progress bar ─────────────────────────────────────────────
+  heroProgress: { gap: 5 },
+  heroProgressMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
   },
-  progressLabel: {
-    fontSize: 11,
+  heroProgressLabel: {
+    fontSize: 10,
     fontWeight: '700',
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.6)',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  progressPct: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.primary,
+  heroProgressPct: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.9)',
   },
-  progressBarOuter: {
-    height: 8,
-    backgroundColor: colors.surface,
+  heroBarOuter: {
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: radius.pill,
-    borderWidth: 1.5,
-    borderColor: colors.border,
     overflow: 'hidden',
   },
-  progressBarInner: {
+  heroBarInner: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.yellow,
     borderRadius: radius.pill,
   },
 

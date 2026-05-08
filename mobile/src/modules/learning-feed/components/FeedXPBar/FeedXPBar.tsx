@@ -3,59 +3,83 @@ import { View, Text, Animated, StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '../../../../app/theme';
 
 interface Props {
-  xp: number;
   xpDelta: number;
-  level: number;
   streak: number;
+  completedTopics: number;
+  totalTopics: number;
 }
 
-const XP_PER_LEVEL = 500;
-
-export function FeedXPBar({ xp, xpDelta, level, streak }: Props) {
+export function FeedXPBar({ xpDelta, streak, completedTopics, totalTopics }: Props) {
   const deltaOpacity = useRef(new Animated.Value(0)).current;
   const deltaTranslate = useRef(new Animated.Value(0)).current;
+  const barWidth = useRef(new Animated.Value(0)).current;
+
+  const progress = totalTopics > 0 ? Math.min(completedTopics / totalTopics, 1) : 0;
+
+  useEffect(() => {
+    Animated.timing(barWidth, {
+      toValue: progress,
+      duration: 600,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, barWidth]);
 
   useEffect(() => {
     if (xpDelta <= 0) return;
     deltaOpacity.setValue(1);
     deltaTranslate.setValue(0);
     Animated.parallel([
-      Animated.timing(deltaTranslate, { toValue: -24, duration: 600, useNativeDriver: true }),
+      Animated.timing(deltaTranslate, { toValue: -20, duration: 500, useNativeDriver: true }),
       Animated.sequence([
-        Animated.delay(300),
+        Animated.delay(250),
         Animated.timing(deltaOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]),
     ]).start();
-  }, [xp, xpDelta, deltaOpacity, deltaTranslate]);
+  }, [xpDelta, deltaOpacity, deltaTranslate]);
 
-  const xpInLevel = xp % XP_PER_LEVEL;
-  const progress = xpInLevel / XP_PER_LEVEL;
+  const pct = Math.round(progress * 100);
 
   return (
     <View style={styles.root}>
       <View style={styles.row}>
-        {/* Level badge */}
-        <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>Lv{level}</Text>
+        {/* Labels */}
+        <View style={styles.labelRow}>
+          <Text style={styles.topicLabel}>
+            {completedTopics}/{totalTopics} topics
+          </Text>
+          <Text style={styles.pctLabel}>{pct}%</Text>
         </View>
 
-        {/* XP bar */}
-        <View style={styles.barContainer}>
-          <View style={styles.barOuter}>
-            <View style={[styles.barInner, { width: `${progress * 100}%` }]} />
-          </View>
-          <Animated.Text
-            style={[styles.deltaText, { opacity: deltaOpacity, transform: [{ translateY: deltaTranslate }] }]}>
-            +{xpDelta} XP
-          </Animated.Text>
-        </View>
-
-        {/* Streak */}
+        {/* Streak — only when active */}
         {streak > 0 && (
-          <View style={styles.streakBadge}>
-            <Text style={styles.streakText}>🔥{streak}</Text>
+          <View style={styles.streakChip}>
+            <Text style={styles.streakFire}>🔥</Text>
+            <Text style={styles.streakCount}>{streak}</Text>
           </View>
         )}
+      </View>
+
+      {/* Progress bar */}
+      <View style={styles.barOuter}>
+        <Animated.View
+          style={[
+            styles.barInner,
+            {
+              width: barWidth.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              }),
+            },
+          ]}
+        />
+        {/* XP float */}
+        <Animated.Text
+          style={[
+            styles.deltaText,
+            { opacity: deltaOpacity, transform: [{ translateY: deltaTranslate }] },
+          ]}>
+          +{xpDelta} XP
+        </Animated.Text>
       </View>
     </View>
   );
@@ -64,32 +88,52 @@ export function FeedXPBar({ xp, xpDelta, level, streak }: Props) {
 const styles = StyleSheet.create({
   root: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
     backgroundColor: colors.bg,
     borderBottomWidth: 2,
     borderBottomColor: colors.border,
+    gap: spacing.xs,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
   },
-  levelBadge: {
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  topicLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  pctLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: colors.primary,
+  },
+  streakChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.yellow,
   },
-  levelText: {
-    fontSize: 11,
+  streakFire: { fontSize: 12 },
+  streakCount: {
+    fontSize: 12,
     fontWeight: '900',
-    color: colors.textInverse,
-  },
-  barContainer: {
-    flex: 1,
-    position: 'relative',
+    color: colors.text,
   },
   barOuter: {
     height: 10,
@@ -97,32 +141,21 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1.5,
     borderColor: colors.border,
-    overflow: 'hidden',
+    overflow: 'visible',
+    position: 'relative',
   },
   barInner: {
     height: '100%',
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.primary,
     borderRadius: radius.pill,
+    overflow: 'hidden',
   },
   deltaText: {
     position: 'absolute',
     right: 0,
-    top: -18,
+    top: -22,
     fontSize: 12,
     fontWeight: '900',
     color: colors.yellow,
-  },
-  streakBadge: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    backgroundColor: colors.bgElevated,
-  },
-  streakText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: colors.text,
   },
 });

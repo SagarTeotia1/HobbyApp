@@ -18,6 +18,7 @@ import { VideoListSheet } from '../components/VideoListSheet/VideoListSheet';
 import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton/FloatingAIButton';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
+import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { useFeedVideos } from '../hooks/useFeedVideos';
 import { colors, spacing, radius } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
@@ -36,10 +37,16 @@ export function LearningFeedScreen() {
   const { hobbyId, topicId, topicName, stageIndex } = route.params;
 
   const addXP = useUserStore((s) => s.addXP);
-  const xp = useUserStore((s) => s.xp);
-  const level = useUserStore((s) => s.level);
   const streak = useUserStore((s) => s.streak);
   const markVideoWatched = useRoadmapStore((s) => s.markVideoWatched);
+  const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
+
+  const { roadmap } = useRoadmap(hobbyId);
+  const roadmapStages = roadmap?.stages ?? [];
+  const completedTopics = roadmapStages.filter(
+    (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
+  ).length;
+  const totalTopics = roadmapStages.length;
 
   const { data: videos = [], isLoading } = useFeedVideos(hobbyId, topicId, stageIndex);
 
@@ -134,7 +141,12 @@ export function LearningFeedScreen() {
           </Pressable>
         </View>
 
-        <FeedXPBar xp={xp} xpDelta={xpDelta} level={level} streak={streak} />
+        <FeedXPBar
+          xpDelta={xpDelta}
+          streak={streak}
+          completedTopics={completedTopics}
+          totalTopics={totalTopics}
+        />
       </SafeAreaView>
 
       <View style={[styles.videoContainer, { height: VIDEO_HEIGHT }]}>

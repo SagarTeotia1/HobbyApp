@@ -21,9 +21,8 @@ async function load(): Promise<CurriculumHobby[]> {
   if (cachedData && now < cacheExpiresAt) return cachedData;
 
   if (!env.CURRICULUM_URL) {
-    throw ApiError.serviceUnavailable(
-      'CURRICULUM_URL is not configured. Add it to .env and restart the server.',
-    );
+    logger.warn('[curriculum] CURRICULUM_URL not set — returning empty curriculum');
+    return [];
   }
 
   logger.info('[curriculum] Fetching from', env.CURRICULUM_URL);

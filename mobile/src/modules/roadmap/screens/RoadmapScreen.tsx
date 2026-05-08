@@ -145,10 +145,10 @@ export function RoadmapScreen() {
       setGeneratingHobby(true);
       invalidateRoadmapCache(newHobbyId);
       try {
-        await roadmapService.generateRoadmap(newHobbyId, skillLevel, dailyTimeMinutes);
-        setHobby(newHobbyId);
+        const data = await roadmapService.generateRoadmap(newHobbyId, skillLevel, dailyTimeMinutes);
+        // use server-normalized hobbyId (server may rename "web-dev" → "web_development")
+        setHobby(data.hobbyId ?? newHobbyId);
       } catch {
-        // Server failed — still switch hobby; useRoadmap will show empty state
         setHobby(newHobbyId);
       } finally {
         setGeneratingHobby(false);
@@ -175,7 +175,7 @@ export function RoadmapScreen() {
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       {/* Hero card — all top info + progress + actions */}
       <View style={styles.hero}>
-        {/* Row 1: emoji + name/xp + action buttons */}
+        {/* Row 1: emoji + name/xp + stats button */}
         <View style={styles.heroTop}>
           <View style={styles.emojiWrap}>
             <Text style={styles.hobbyEmoji}>{hobbyMeta?.emoji ?? '🎯'}</Text>
@@ -186,23 +186,23 @@ export function RoadmapScreen() {
             </Text>
             <Text style={styles.levelBadge}>Lv {level} · {xp} XP</Text>
           </View>
-          <View style={styles.heroBtns}>
-            <Pressable
-              style={({ pressed }) => [styles.heroBtn, styles.heroBtnYellow, pressed && styles.heroBtnPressed]}
-              onPress={() => setPickerOpen(true)}>
-              <Text style={styles.heroBtnIcon}>🔄</Text>
-              <Text style={styles.heroBtnLabel}>Change</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.heroBtn, styles.heroBtnWhite, pressed && styles.heroBtnPressed]}
-              onPress={handleDashboard}>
-              <Text style={styles.heroBtnIcon}>📊</Text>
-              <Text style={styles.heroBtnLabel}>Stats</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={({ pressed }) => [styles.statsBtn, pressed && styles.heroBtnPressed]}
+            onPress={handleDashboard}>
+            <Text style={styles.statsBtnIcon}>📊</Text>
+            <Text style={styles.statsBtnLabel}>Stats</Text>
+          </Pressable>
         </View>
 
-        {/* Row 2: progress bar */}
+        {/* Row 2: change hobby */}
+        <Pressable
+          style={({ pressed }) => [styles.changeHobbyBtn, pressed && styles.changeHobbyBtnPressed]}
+          onPress={() => setPickerOpen(true)}>
+          <Text style={styles.changeHobbyBtnText}>🔄  Change Hobby</Text>
+          <Text style={styles.changeHobbyArrow}>›</Text>
+        </Pressable>
+
+        {/* Row 3: progress bar */}
         <View style={styles.heroProgress}>
           <View style={styles.heroProgressMeta}>
             <Text style={styles.heroProgressLabel}>{completedCount}/{totalCount} topics</Text>
@@ -237,8 +237,10 @@ export function RoadmapScreen() {
                 Generate {nextSkillLevel.charAt(0).toUpperCase() + nextSkillLevel.slice(1)} Roadmap →
               </Text>
             </Pressable>
-            <Pressable onPress={() => setLevelUpVisible(false)}>
-              <Text style={styles.levelUpDismiss}>Maybe later</Text>
+            <Pressable
+              style={({ pressed }) => [styles.levelUpDismissBtn, pressed && styles.levelUpDismissBtnPressed]}
+              onPress={() => setLevelUpVisible(false)}>
+              <Text style={styles.levelUpDismissText}>Maybe later</Text>
             </Pressable>
           </View>
         )}
@@ -250,8 +252,10 @@ export function RoadmapScreen() {
             <Text style={styles.levelUpBody}>
               You've completed all levels for this hobby. You're a master!
             </Text>
-            <Pressable onPress={() => setLevelUpVisible(false)}>
-              <Text style={styles.levelUpDismiss}>Dismiss</Text>
+            <Pressable
+              style={({ pressed }) => [styles.levelUpDismissBtn, styles.levelUpDismissBtnSolid, pressed && styles.levelUpDismissBtnPressed]}
+              onPress={() => setLevelUpVisible(false)}>
+              <Text style={styles.levelUpDismissTextSolid}>🎉 Awesome, Dismiss</Text>
             </Pressable>
           </View>
         )}
@@ -363,35 +367,51 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.65)',
     marginTop: 1,
   },
-  heroBtns: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  heroBtn: {
+  statsBtn: {
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.5)',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 2, height: 2 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 2,
-    minWidth: 56,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    minWidth: 52,
   },
-  heroBtnYellow: { backgroundColor: colors.yellow },
-  heroBtnWhite: { backgroundColor: 'rgba(255,255,255,0.9)' },
+  statsBtnIcon: { fontSize: 14 },
+  statsBtnLabel: { fontSize: 9, fontWeight: '800', color: 'rgba(255,255,255,0.9)', marginTop: 1, letterSpacing: 0.3 },
+
   heroBtnPressed: {
     transform: [{ translateX: 2 }, { translateY: 2 }],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
   },
-  heroBtnIcon: { fontSize: 14 },
-  heroBtnLabel: { fontSize: 9, fontWeight: '800', color: colors.text, marginTop: 1, letterSpacing: 0.3 },
+
+  changeHobbyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.yellow,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  changeHobbyBtnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  changeHobbyBtnText: { fontSize: 13, fontWeight: '900', color: colors.text },
+  changeHobbyArrow: { fontSize: 18, fontWeight: '900', color: colors.text },
 
   // ── Hero progress bar ─────────────────────────────────────────────
   heroProgress: { gap: 5 },
@@ -493,5 +513,30 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   levelUpBtnText: { fontSize: 14, fontWeight: '900', color: colors.textInverse },
-  levelUpDismiss: { fontSize: 12, fontWeight: '600', color: colors.text, opacity: 0.6, marginTop: spacing.xs },
+  levelUpDismissBtn: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 2,
+  },
+  levelUpDismissBtnSolid: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  levelUpDismissBtnPressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  levelUpDismissText: { fontSize: 13, fontWeight: '800', color: colors.text },
+  levelUpDismissTextSolid: { fontSize: 13, fontWeight: '800', color: colors.textInverse },
 });

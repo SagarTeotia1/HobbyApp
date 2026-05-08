@@ -1,28 +1,83 @@
 import { StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '../../../../app/theme';
 
+// DOT_COL_WIDTH must stay in sync with dotCol.width below
+const DOT_SIZE = 22;
+const DOT_COL_WIDTH = 36;
+const CONNECTOR_W = 3;
+const CONNECTOR_H = 28;
+
 export const styles = StyleSheet.create({
   wrapper: {
-    alignItems: 'center',
+    // no alignItems — let timelineRow control alignment
   },
-  connector: {
-    width: 3,
-    height: 32,
-    backgroundColor: colors.border,
-  },
-  connectorCompleted: {
-    backgroundColor: colors.primary,
-  },
-  connectorLocked: {
-    backgroundColor: colors.borderLight,
-  },
-  row: {
+  timelineRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.md,
   },
-  cardColumn: {
+
+  // ── Left timeline rail ────────────────────────────────────────────
+  dotCol: {
+    width: DOT_COL_WIDTH,
+    alignItems: 'center',
+  },
+
+  // connector drawn above the dot (between prev node and this one)
+  connectorTrack: {
+    width: CONNECTOR_W,
+    height: CONNECTOR_H,
+    backgroundColor: colors.borderLight,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+    justifyContent: 'flex-end', // fill grows upward from bottom → feels like it "connects"
+  },
+  connectorFill: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+  },
+
+  dot: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    borderWidth: 3,
+    borderColor: colors.border,
+    backgroundColor: colors.bgElevated,
+    zIndex: 1,
+  },
+  dotCompleted: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  dotCurrent: {
+    backgroundColor: colors.yellow,
+    borderColor: colors.border,
+  },
+  dotLocked: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderLight,
+  },
+
+  // tail drawn below the dot (going toward next node)
+  tail: {
+    width: CONNECTOR_W,
     flex: 1,
+    minHeight: 20,
+    borderRadius: radius.pill,
+  },
+  tailCompleted: {
+    backgroundColor: colors.primary,
+  },
+  tailPending: {
+    backgroundColor: colors.borderLight,
+  },
+
+  // ── Right card column ─────────────────────────────────────────────
+  cardCol: {
+    flex: 1,
+    marginLeft: spacing.sm,
+    paddingBottom: CONNECTOR_H, // space so tail lines up before next node
     gap: 6,
   },
   cardInner: {
@@ -44,28 +99,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: {
-    width: 20,
-    height: 20,
-    borderRadius: radius.pill,
-    borderWidth: 3,
-    borderColor: colors.border,
-    backgroundColor: colors.bgElevated,
+  continueBtnText: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: colors.primary,
   },
-  dotCompleted: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  dotCurrent: {
-    backgroundColor: colors.yellow,
-    borderColor: colors.border,
-  },
-  dotLocked: {
-    backgroundColor: colors.surface,
-    borderColor: colors.borderLight,
-  },
+
+  // ── Card ──────────────────────────────────────────────────────────
   card: {
-    flex: 1,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
@@ -91,6 +132,7 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
+    opacity: 0.6,
   },
   cardPressed: {
     transform: [{ translateX: 3 }, { translateY: 3 }],
@@ -98,6 +140,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+
+  // ── Card content ──────────────────────────────────────────────────
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -105,7 +149,7 @@ export const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   label: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -138,18 +182,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
-  checkmark: {
-    fontSize: 16,
-  },
-  lockIcon: {
-    fontSize: 14,
-  },
-
-  continueBtnText: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: colors.primary,
-  },
+  checkmark: { fontSize: 15 },
+  lockIcon: { fontSize: 13 },
 
   // ── Inline action buttons ─────────────────────────────────────────
   actionRow: {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, View, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Pressable, View, Text, Animated } from 'react-native';
 import { styles } from './RoadmapNode.styles';
 import type { TopicProgress } from '../../types/roadmap.types';
 
@@ -26,20 +26,54 @@ export function RoadmapNode({
   const watched = progress?.videosWatched ?? 0;
   const total = progress?.totalVideos ?? 1;
 
+  const fillAnim = useRef(new Animated.Value(isCompleted ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(fillAnim, {
+      toValue: isCompleted ? 1 : 0,
+      duration: 500,
+      delay: 100,
+      useNativeDriver: false,
+    }).start();
+  }, [isCompleted, fillAnim]);
+
   const cardStyle = isCompleted ? styles.cardCompleted : isCurrent ? styles.cardCurrent : styles.cardLocked;
   const dotStyle = isCompleted ? styles.dotCompleted : isCurrent ? styles.dotCurrent : styles.dotLocked;
   const labelStyle = isCompleted ? styles.labelCompleted : isCurrent ? styles.labelCurrent : styles.labelLocked;
-  const connectorStyle = isCompleted ? styles.connectorCompleted : isLocked ? styles.connectorLocked : styles.connector;
 
   const label = isCompleted ? 'COMPLETED ✓' : isCurrent ? 'IN PROGRESS' : 'LOCKED';
 
   return (
     <View style={styles.wrapper}>
-      {!isFirst && <View style={[styles.connector, connectorStyle]} />}
-      <View style={styles.row}>
-        <View style={[styles.dot, dotStyle]} />
-        <View style={styles.cardColumn}>
+      <View style={styles.timelineRow}>
+        {/* Left column: connector + dot + tail */}
+        <View style={styles.dotCol}>
+          {!isFirst && (
+            <View style={styles.connectorTrack}>
+              <Animated.View
+                style={[
+                  styles.connectorFill,
+                  {
+                    height: fillAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                    backgroundColor: isCompleted ? '#004643' : '#C8C2B6',
+                  },
+                ]}
+              />
+            </View>
+          )}
 
+          <View style={[styles.dot, dotStyle]} />
+
+          {!isLast && (
+            <View style={[styles.tail, isCompleted ? styles.tailCompleted : styles.tailPending]} />
+          )}
+        </View>
+
+        {/* Right column: card + actions */}
+        <View style={styles.cardCol}>
           <Pressable
             style={({ pressed }) => [styles.card, cardStyle, pressed && !isLocked && styles.cardPressed]}
             onPress={isLocked ? undefined : onPress}
@@ -68,9 +102,7 @@ export function RoadmapNode({
                 )}
               </View>
 
-              {!isLocked && (
-                <View style={styles.continueDivider} />
-              )}
+              {!isLocked && <View style={styles.continueDivider} />}
               {!isLocked && (
                 <View style={styles.continueSection}>
                   <Text style={styles.continueBtnText}>›</Text>

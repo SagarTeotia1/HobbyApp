@@ -4,9 +4,8 @@ export interface FeedVideo {
   creator: string;
   youtubeId?: string;
   videoUrl?: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
   keyInsight: string;
-  durationSeconds?: number;
 }
 
 export interface FeedTopic {

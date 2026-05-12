@@ -1,7 +1,6 @@
 import { apiClient, unwrap } from '../../../shared/services/api.client';
 import type { TopicDetail, LearnGraph, RoadmapData } from '../types/roadmap.types';
 import type { ApiEnvelope } from '../../../shared/types/api.types';
-import type { AxiosResponse } from 'axios';
 
 interface TopicInput {
   hobbyId: string;
@@ -12,9 +11,7 @@ interface TopicInput {
 
 export const roadmapService = {
   async getRoadmap(hobbyId: string): Promise<RoadmapData> {
-    return unwrap(
-      apiClient.get(`/roadmap/${hobbyId}`) as Promise<AxiosResponse<ApiEnvelope<RoadmapData>>>,
-    );
+    return unwrap(apiClient.get<ApiEnvelope<RoadmapData>>(`/roadmap/${hobbyId}`));
   },
 
   async generateRoadmap(
@@ -23,21 +20,15 @@ export const roadmapService = {
     dailyMinutes: number,
   ): Promise<RoadmapData> {
     return unwrap(
-      apiClient.post('/roadmap/generate', { hobbyId, skillLevel, dailyMinutes }) as Promise<
-        AxiosResponse<ApiEnvelope<RoadmapData>>
-      >,
+      apiClient.post<ApiEnvelope<RoadmapData>>('/roadmap/generate', { hobbyId, skillLevel, dailyMinutes }),
     );
   },
 
   async getTopicDetail(input: TopicInput): Promise<TopicDetail> {
-    return unwrap(
-      apiClient.post('/roadmap/topic-detail', input) as Promise<AxiosResponse<ApiEnvelope<TopicDetail>>>,
-    );
+    return unwrap(apiClient.post<ApiEnvelope<TopicDetail>>('/roadmap/topic-detail', input));
   },
 
   async getLearnGraph(input: TopicInput): Promise<LearnGraph> {
-    return unwrap(
-      apiClient.post('/roadmap/learn-graph', input) as Promise<AxiosResponse<ApiEnvelope<LearnGraph>>>,
-    );
+    return unwrap(apiClient.post<ApiEnvelope<LearnGraph>>('/roadmap/learn-graph', input));
   },
 };

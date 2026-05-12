@@ -18,7 +18,8 @@ export function useHobbySearch() {
       setSuggestions(
         result.suggestions.slice(0, 4).map((s) => ({ slug: s.slug, name: s.name })),
       );
-    } catch {
+    } catch (e) {
+      console.warn('[useHobbySearch] Failed to fetch suggestions:', e);
       setSuggestions([]);
     } finally {
       setIsSearching(false);

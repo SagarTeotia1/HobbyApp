@@ -14,7 +14,8 @@ function loadProgress(): Record<string, HobbyProgress> {
   try {
     const raw = storageService.getRoadmapProgress();
     return raw ? (JSON.parse(raw) as Record<string, HobbyProgress>) : {};
-  } catch {
+  } catch (e) {
+    console.warn('[roadmap.store] Failed to parse saved progress:', e);
     return {};
   }
 }

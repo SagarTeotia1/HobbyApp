@@ -7,6 +7,7 @@ export interface AIMessage {
   role: AIRole;
   content: string;
   createdAt: number;
+  isError?: boolean;
 }
 
 interface AIState {
@@ -20,6 +21,7 @@ interface AIState {
   setStreaming: (v: boolean) => void;
   appendMessage: (m: AIMessage) => void;
   appendChunk: (id: string, chunk: string) => void;
+  markError: (id: string) => void;
   clear: () => void;
 }
 
@@ -37,6 +39,12 @@ export const useAIStore = create<AIState>((set, get) => ({
     set({
       messages: get().messages.map((m) =>
         m.id === id ? { ...m, content: m.content + chunk } : m,
+      ),
+    }),
+  markError: (id) =>
+    set({
+      messages: get().messages.map((m) =>
+        m.id === id ? { ...m, content: 'Something went wrong. Try again.', isError: true } : m,
       ),
     }),
   clear: () => set({ messages: [] }),

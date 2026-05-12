@@ -1,6 +1,5 @@
 import { env } from '../../config/env';
 import { logger } from '../../shared/logger/winston';
-import { ApiError } from '../../shared/utils/ApiError';
 import type { CurriculumHobby, CurriculumVideo } from './curriculum.types';
 
 let cachedData: CurriculumHobby[] | null = null;
@@ -54,17 +53,16 @@ export const curriculumService = {
     }));
   },
 
-  async getHobby(hobbyId: string): Promise<CurriculumHobby> {
+  async getHobby(hobbyId: string): Promise<CurriculumHobby | null> {
     const data = await load();
-    const hobby = data.find((h) => h.id === hobbyId);
-    if (!hobby) throw ApiError.notFound(`Hobby '${hobbyId}' not found`);
-    return hobby;
+    return data.find((h) => h.id === hobbyId) ?? null;
   },
 
   async getTopic(hobbyId: string, topicId: string) {
-    const hobby = await curriculumService.getHobby(hobbyId);
-    const topic = hobby.topics.find((t) => t.id === topicId);
-    if (!topic) throw ApiError.notFound(`Topic '${topicId}' not found`);
+    const data = await load();
+    const hobby = data.find((h) => h.id === hobbyId);
+    if (!hobby) return { topic: null, hobbyName: hobbyId };
+    const topic = hobby.topics.find((t) => t.id === topicId) ?? null;
     return { topic, hobbyName: hobby.name };
   },
 

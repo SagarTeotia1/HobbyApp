@@ -1,7 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, View, Text, Animated } from 'react-native';
+import { colors } from '../../../../app/theme';
 import { styles } from './RoadmapNode.styles';
 import type { TopicProgress } from '../../types/roadmap.types';
+
+const NODE_ANIM_DURATION = 500;
+const NODE_ANIM_DELAY = 100;
 
 interface Props {
   topicName: string;
@@ -31,8 +35,8 @@ export function RoadmapNode({
   useEffect(() => {
     Animated.timing(fillAnim, {
       toValue: isCompleted ? 1 : 0,
-      duration: 500,
-      delay: 100,
+      duration: NODE_ANIM_DURATION,
+      delay: NODE_ANIM_DELAY,
       useNativeDriver: false,
     }).start();
   }, [isCompleted, fillAnim]);
@@ -58,7 +62,7 @@ export function RoadmapNode({
                       inputRange: [0, 1],
                       outputRange: ['0%', '100%'],
                     }),
-                    backgroundColor: isCompleted ? '#004643' : '#C8C2B6',
+                    backgroundColor: isCompleted ? colors.primary : colors.borderLight,
                   },
                 ]}
               />

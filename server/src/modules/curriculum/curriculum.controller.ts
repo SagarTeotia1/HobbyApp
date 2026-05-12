@@ -10,6 +10,7 @@ export const curriculumController = {
 
   async getHobby(req: Request, res: Response): Promise<Response> {
     const hobby = await curriculumService.getHobby(String(req.params.hobbyId ?? ''));
+    if (!hobby) return ApiResponse.error(res, 404, 'NOT_FOUND', 'Hobby not found');
     return ApiResponse.ok(res, { hobby });
   },
 
@@ -17,7 +18,9 @@ export const curriculumController = {
     const hobbyId = String(req.params.hobbyId ?? '');
     const topicId = String(req.params.topicId ?? '');
     const { topic, hobbyName } = await curriculumService.getTopic(hobbyId, topicId);
-
+    if (!topic) {
+      return ApiResponse.ok(res, { topic: { id: topicId, name: topicId, videos: [] }, hobbyName });
+    }
     return ApiResponse.ok(res, { topic, hobbyName });
   },
 

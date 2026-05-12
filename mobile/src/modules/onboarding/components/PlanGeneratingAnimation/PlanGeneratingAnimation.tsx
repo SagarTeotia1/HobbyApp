@@ -10,6 +10,11 @@ const STEPS = [
   { icon: '✨', text: 'Almost ready…' },
 ];
 
+const PULSE_DURATION = 700;
+const STEP_CYCLE_MS = 2000;
+const STEP_FADE_OUT_MS = 200;
+const STEP_FADE_IN_MS = 300;
+
 interface Props {
   hobbyName: string;
 }
@@ -23,8 +28,8 @@ export function PlanGeneratingAnimation({ hobbyName }: Props) {
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.15, duration: 700, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1,    duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.15, duration: PULSE_DURATION, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1,    duration: PULSE_DURATION, useNativeDriver: true }),
       ]),
     );
     pulse.start();
@@ -34,11 +39,11 @@ export function PlanGeneratingAnimation({ hobbyName }: Props) {
   // Cycle steps
   useEffect(() => {
     const interval = setInterval(() => {
-      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+      Animated.timing(fadeAnim, { toValue: 0, duration: STEP_FADE_OUT_MS, useNativeDriver: true }).start(() => {
         setStepIndex((i) => (i + 1) % STEPS.length);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+        Animated.timing(fadeAnim, { toValue: 1, duration: STEP_FADE_IN_MS, useNativeDriver: true }).start();
       });
-    }, 2000);
+    }, STEP_CYCLE_MS);
     return () => clearInterval(interval);
   }, [fadeAnim]);
 

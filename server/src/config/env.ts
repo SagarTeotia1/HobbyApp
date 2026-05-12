@@ -32,6 +32,17 @@ const envSchema = z.object({
   AI_PROVIDER: z.enum(['groq', 'gemini']).default('groq'),
   AI_FALLBACK_PROVIDER: z.enum(['groq', 'gemini']).default('gemini'),
 
+  HF_TOKEN: z.string().optional(),
+  REPLICATE_API_TOKEN: z.string().min(1, 'REPLICATE_API_TOKEN is required'),
+
+  R2_ACCOUNT_ID: z.string().min(1, 'R2_ACCOUNT_ID is required'),
+  R2_ACCESS_KEY_ID: z.string().min(1, 'R2_ACCESS_KEY_ID is required'),
+  R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2_SECRET_ACCESS_KEY is required'),
+  R2_BUCKET_NAME: z.string().default('test'),
+  R2_PUBLIC_URL: z.string().url('R2_PUBLIC_URL must be a valid URL'),
+
+  YOUTUBE_API_KEY: z.string().optional(),
+
   CURRICULUM_URL: z.string().url().optional(),
 
   CORS_ORIGIN: z.string().default('*'),

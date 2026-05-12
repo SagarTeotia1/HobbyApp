@@ -13,7 +13,7 @@ export function SlideUp({ distance = 16, duration = 350, children }: PropsWithCh
   useEffect(() => {
     translateY.value = withTiming(0, { duration });
     opacity.value = withTiming(1, { duration });
-  }, [duration, translateY, opacity]);
+  }, [duration, distance, translateY, opacity]);
 
   const style = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

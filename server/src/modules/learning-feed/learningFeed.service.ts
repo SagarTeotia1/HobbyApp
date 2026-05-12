@@ -8,9 +8,9 @@ import { UserModel } from '../../models/User.model';
 import { UserProgressModel } from '../../models/UserProgress.model';
 import { HobbyModel } from '../../models/Hobby.model';
 import { GAME_CONFIG } from '../../shared/constants/gameConfig';
-import { cardGenerationQueue } from '../../infrastructure/queue/cardGeneration.queue';
 import { aiService } from '../ai/ai.service';
 import { ApiError } from '../../shared/utils/ApiError';
+import { logger } from '../../shared/logger/winston';
 import type { DifficultyLevel, LearningCard, LearningSignal } from '../../shared/types/common.types';
 import { DifficultyEngine } from '../../engines/DifficultyEngine/DifficultyEngine';
 import { LearningEngine } from '../../engines/LearningEngine/LearningEngine';
@@ -41,9 +41,13 @@ async function hydrateRedisQueue(userId: string, hobbyId: string, desired: numbe
     }),
   );
 
-  await redis.del(key);
-  await redis.rpush(key, ...payloads);
-  await redis.expire(key, cacheTTL.cardQueue);
+  try {
+    await redis.del(key);
+    await redis.rpush(key, ...payloads);
+    await redis.expire(key, cacheTTL.cardQueue);
+  } catch (err) {
+    logger.warn('[feed] Redis unavailable, card queue not hydrated', { err: err instanceof Error ? err.message : String(err) });
+  }
 }
 
 async function seedImmediateFallbackCards(
@@ -85,6 +89,67 @@ async function seedImmediateFallbackCards(
   }));
 }
 
+// Replaces BullMQ worker — runs async without blocking the request.
+// Any failure is logged but never surfaced to the caller.
+async function generateAndStoreCards(
+  userId: string,
+  hobbyId: string,
+  difficulty: DifficultyLevel,
+  batchSize: number,
+  conceptHints: string[],
+): Promise<void> {
+  const hobby = await HobbyModel.findOne({ slug: hobbyId }).lean();
+  if (!hobby) {
+    logger.warn('[prefetch] hobby not found', { hobbyId });
+    return;
+  }
+
+  const conceptId = conceptHints[0] ?? `${hobbyId}_core_foundations`;
+
+  let cards: Array<{
+    hobbyId: string;
+    type: string;
+    difficulty: DifficultyLevel;
+    conceptId: string;
+    title: string;
+    frontContent: string;
+    backContent: string;
+    tags: string[];
+    estimatedReadSeconds: number;
+    generatedAt: Date;
+  }>;
+
+  try {
+    cards = await aiService.generateCards({
+      hobby: hobby.name,
+      hobbyId: hobby.slug,
+      level: difficulty,
+      conceptId,
+      count: batchSize,
+      previousCards: [],
+      userWeaknesses: [],
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn('[prefetch] AI generation failed, using fallback cards', { hobbyId, message });
+    cards = Array.from({ length: batchSize }).map((_, i) => ({
+      hobbyId: hobby.slug,
+      type: 'concept',
+      difficulty,
+      conceptId,
+      title: `${hobby.name} Micro Lesson ${i + 1}`,
+      frontContent: `Core ${hobby.name} idea #${i + 1}.`,
+      backContent: `Practical ${hobby.name} tip #${i + 1}.`,
+      tags: [hobby.slug, 'fallback'],
+      estimatedReadSeconds: 30,
+      generatedAt: new Date(),
+    }));
+  }
+
+  await CardModel.insertMany(cards.map((card) => ({ ...card, generatedFor: userId })));
+  await hydrateRedisQueue(userId, hobbyId, batchSize);
+}
+
 function toSignal(userId: string, payload: CardInteractionInput): LearningSignal {
   return {
     userId,
@@ -100,23 +165,47 @@ function toSignal(userId: string, payload: CardInteractionInput): LearningSignal
 export const learningFeedService = {
   async getNextCards(userId: string, query: FeedQueryInput): Promise<FeedResponse> {
     const key = cacheKeys.cardQueue(userId, query.hobbyId);
-    let rawCards = await redis.lrange(key, 0, Math.max(query.limit - 1, 0));
-    if (rawCards.length === 0) {
-      await hydrateRedisQueue(userId, query.hobbyId, Math.max(query.limit, GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE));
+    let rawCards: string[] = [];
+    let redisAvailable = true;
+
+    try {
       rawCards = await redis.lrange(key, 0, Math.max(query.limit - 1, 0));
+    } catch (err) {
+      logger.warn('[feed] Redis unavailable, skipping queue read', { err: err instanceof Error ? err.message : String(err) });
+      redisAvailable = false;
+    }
+
+    if (rawCards.length === 0 && redisAvailable) {
+      try {
+        await hydrateRedisQueue(userId, query.hobbyId, Math.max(query.limit, GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE));
+        rawCards = await redis.lrange(key, 0, Math.max(query.limit - 1, 0));
+      } catch (err) {
+        logger.warn('[feed] Redis hydration failed', { err: err instanceof Error ? err.message : String(err) });
+        redisAvailable = false;
+      }
     }
 
     let cards: LearningCard[] = rawCards.map((raw) => JSON.parse(raw) as LearningCard);
     if (cards.length === 0) {
       cards = await seedImmediateFallbackCards(userId, query.hobbyId, query.limit);
-      await hydrateRedisQueue(userId, query.hobbyId, Math.max(query.limit, GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE));
+      if (redisAvailable) {
+        try {
+          await hydrateRedisQueue(userId, query.hobbyId, Math.max(query.limit, GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE));
+        } catch (err) {
+          logger.warn('[feed] Redis hydration after fallback failed', { err: err instanceof Error ? err.message : String(err) });
+        }
+      }
     }
 
-    if (cards.length > 0) {
-      await redis.ltrim(key, cards.length, -1);
+    let remaining = 0;
+    if (cards.length > 0 && redisAvailable) {
+      try {
+        await redis.ltrim(key, cards.length, -1);
+        remaining = await redis.llen(key);
+      } catch (err) {
+        logger.warn('[feed] Redis trim/llen failed', { err: err instanceof Error ? err.message : String(err) });
+      }
     }
-
-    const remaining = await redis.llen(key);
 
     return { cards, hasMore: remaining > 0 || cards.length > 0 };
   },
@@ -150,6 +239,22 @@ export const learningFeedService = {
       { upsert: true, new: true },
     );
 
+    // Track mastered / weak concepts for adaptive card selection
+    const card = await CardModel.findOne({ _id: payload.cardId }).lean();
+    if (card) {
+      if (payload.interaction === 'understood') {
+        await UserProgressModel.updateOne(
+          { userId, hobbyId: payload.hobbyId },
+          { $addToSet: { masteredConcepts: card.conceptId } },
+        );
+      } else if (payload.interaction === 'needs_simpler') {
+        await UserProgressModel.updateOne(
+          { userId, hobbyId: payload.hobbyId },
+          { $addToSet: { weakConcepts: card.conceptId } },
+        );
+      }
+    }
+
     const adjustment = DifficultyEngine.adjust(
       {
         current: progress.currentDifficulty as DifficultyLevel,
@@ -168,8 +273,14 @@ export const learningFeedService = {
 
   async triggerPrefetch(userId: string, hobbyId: string): Promise<void> {
     const lockKey = `prefetch:lock:${userId}:${hobbyId}`;
-    const acquired = await redis.set(lockKey, '1', 'EX', PREFETCH_LOCK_TTL_SECONDS, 'NX');
-    if (!acquired) return;
+    let canProceed = true;
+    try {
+      const acquired = await redis.set(lockKey, '1', 'EX', PREFETCH_LOCK_TTL_SECONDS, 'NX');
+      canProceed = acquired !== null;
+    } catch (err) {
+      logger.warn('[prefetch] Redis lock unavailable, proceeding without lock', { err: err instanceof Error ? err.message : String(err) });
+    }
+    if (!canProceed) return;
 
     const progress = await UserProgressModel.findOne({ userId, hobbyId }).lean();
     const suggestion = LearningEngine.pickNext({
@@ -180,24 +291,35 @@ export const learningFeedService = {
       weakConcepts: progress?.weakConcepts ?? [],
     });
 
-    await cardGenerationQueue.add('feed-prefetch', {
-      userId,
-      hobbyId,
-      difficulty: suggestion.difficulty,
-      batchSize: GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE,
-      conceptHints: [suggestion.conceptId],
-    }, {
-      jobId: `prefetch:${userId}:${hobbyId}`,
-      removeOnComplete: true,
-      removeOnFail: { age: 60 * 10 },
+    // Fire-and-forget — does not block the HTTP response
+    setImmediate(() => {
+      void generateAndStoreCards(
+        userId,
+        hobbyId,
+        suggestion.difficulty,
+        GAME_CONFIG.PREFETCH.NEXT_BATCH_SIZE,
+        [suggestion.conceptId],
+      ).catch((err: unknown) => {
+        logger.error('[prefetch] unexpected error', {
+          err: err instanceof Error ? err.message : String(err),
+        });
+      });
     });
   },
 
   async simplifyCard(userId: string, hobbyId: string, cardId: string): Promise<string> {
-    const card = await CardModel.findOne({ _id: cardId, hobbyId }).lean();
+    const [card, user, hobby] = await Promise.all([
+      CardModel.findOne({ _id: cardId, hobbyId }).lean(),
+      UserModel.findOne({ uuid: userId }).lean(),
+      HobbyModel.findOne({ slug: hobbyId }).lean(),
+    ]);
     if (!card) throw ApiError.notFound('Card not found');
 
-    const simplified = await aiService.simplifyCard(userId, { cardId, hobbyId });
+    const simplified = await aiService.simplifyCard({
+      hobby: hobby?.name ?? hobbyId,
+      originalContent: card.frontContent,
+      userLevel: (user?.skillLevel as DifficultyLevel) ?? 'beginner',
+    });
     await CardModel.updateOne({ _id: cardId }, { $set: { simplifiedContent: simplified.simplifiedContent } });
     return simplified.simplifiedContent;
   },

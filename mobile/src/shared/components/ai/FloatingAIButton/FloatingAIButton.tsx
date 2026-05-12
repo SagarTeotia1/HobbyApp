@@ -9,23 +9,28 @@ interface Props {
   bottomOffset?: number;
 }
 
+const FAB_SIZE = 56;
+const FAB_PADDING = 12;
+const FAB_DRAG_THRESHOLD = 4;
+
 export function FloatingAIButton({ hobbyId, bottomOffset = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
   const bounds = useMemo(() => {
-    const minX = 12;
-    const minY = 12;
-    const maxX = screenWidth - 56 - 12;
-    const maxY = screenHeight - 56 - 12 - bottomOffset;
+    const minX = FAB_PADDING;
+    const minY = FAB_PADDING;
+    const maxX = screenWidth - FAB_SIZE - FAB_PADDING;
+    const maxY = screenHeight - FAB_SIZE - FAB_PADDING - bottomOffset;
     return { minX, minY, maxX: Math.max(minX, maxX), maxY: Math.max(minY, maxY) };
   }, [screenWidth, screenHeight, bottomOffset]);
 
   const initialX = bounds.maxX;
-  const initialY = Math.min(bounds.maxY, screenHeight - 56 - 32 - bottomOffset);
+  const initialY = Math.min(bounds.maxY, screenHeight - FAB_SIZE - 32 - bottomOffset);
 
   const position = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
   const dragStart = useRef({ x: initialX, y: initialY });
+  const currentPos = useRef({ x: initialX, y: initialY });
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
@@ -35,22 +40,18 @@ export function FloatingAIButton({ hobbyId, bottomOffset = 0 }: Props) {
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gesture) =>
-          Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4,
+          Math.abs(gesture.dx) > FAB_DRAG_THRESHOLD || Math.abs(gesture.dy) > FAB_DRAG_THRESHOLD,
         onPanResponderGrant: () => {
-          dragStart.current = {
-            x: position.x.__getValue(),
-            y: position.y.__getValue(),
-          };
+          dragStart.current = { ...currentPos.current };
         },
         onPanResponderMove: (_, gesture) => {
           const nextX = Math.min(bounds.maxX, Math.max(bounds.minX, dragStart.current.x + gesture.dx));
           const nextY = Math.min(bounds.maxY, Math.max(bounds.minY, dragStart.current.y + gesture.dy));
           position.setValue({ x: nextX, y: nextY });
+          currentPos.current = { x: nextX, y: nextY };
         },
         onPanResponderRelease: () => {
-          const clampedX = Math.min(bounds.maxX, Math.max(bounds.minX, position.x.__getValue()));
-          const clampedY = Math.min(bounds.maxY, Math.max(bounds.minY, position.y.__getValue()));
-          position.setValue({ x: clampedX, y: clampedY });
+          // Position already clamped in onPanResponderMove
         },
       }),
     [bounds, position],

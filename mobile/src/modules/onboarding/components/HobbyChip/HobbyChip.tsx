@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { hobbyChipStyles as styles } from './HobbyChip.styles';
+import { colors } from '../../../../app/theme';
 
 export type HobbyChipVariant = 'chip' | 'card';
 
@@ -29,7 +30,7 @@ export function HobbyChip({
         onPress={onPress}
         style={({ pressed }) => [
           styles.card,
-          { backgroundColor: selected ? undefined : (tileBg ?? '#EAF5F4') },
+          { backgroundColor: selected ? undefined : (tileBg ?? colors.primaryLight) },
           selected && styles.cardSelected,
           !selected && pressed && styles.cardPressed,
         ]}>

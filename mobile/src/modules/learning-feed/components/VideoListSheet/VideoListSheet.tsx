@@ -4,14 +4,18 @@ import {
   View,
   Text,
   Pressable,
-  FlatList,
   Image,
-  TouchableOpacity,
   StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius } from '../../../../app/theme';
 import type { FeedVideo } from '../../types/feed.types';
+
+const VIDEO_THUMB_BG = '#111111';
+const VIDEO_PLACEHOLDER_BG = '#222222';
+const THUMB_OVERLAY_BG = 'rgba(0,0,0,0.7)';
 
 interface Props {
   visible: boolean;
@@ -94,7 +98,10 @@ export function VideoListSheet({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
+      <View style={styles.container}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
 
       <SafeAreaView style={styles.sheet} edges={['bottom']}>
         {/* Handle */}
@@ -113,14 +120,16 @@ export function VideoListSheet({
           </Pressable>
         </View>
 
-        <FlatList
+        <FlashList
           data={videos}
           keyExtractor={(v) => v.id}
           renderItem={renderItem}
+          estimatedItemSize={84}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />
       </SafeAreaView>
+      </View>
     </Modal>
   );
 }
@@ -129,9 +138,13 @@ const THUMB_W = 120;
 const THUMB_H = 68;
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.overlay,
   },
   sheet: {
     backgroundColor: colors.bg,
@@ -200,7 +213,7 @@ const styles = StyleSheet.create({
   },
   itemCurrent: {
     borderColor: colors.yellow,
-    backgroundColor: '#FFFDE7',
+    backgroundColor: colors.yellowLight,
   },
   itemPressed: {
     transform: [{ translateX: 3 }, { translateY: 3 }],
@@ -215,13 +228,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: colors.border,
-    backgroundColor: '#111',
+    backgroundColor: VIDEO_THUMB_BG,
   },
   thumb: { width: '100%', height: '100%' },
   thumbPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#222',
+    backgroundColor: VIDEO_PLACEHOLDER_BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -230,12 +243,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     left: 4,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: THUMB_OVERLAY_BG,
     borderRadius: radius.sm,
     paddingHorizontal: 5,
     paddingVertical: 1,
   },
-  thumbNum: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  thumbNum: { color: colors.textInverse, fontSize: 10, fontWeight: '900' },
   watchedBadge: {
     position: 'absolute',
     top: 4,
@@ -249,7 +262,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  watchedCheck: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  watchedCheck: { color: colors.textInverse, fontSize: 10, fontWeight: '900' },
   playingBadge: {
     position: 'absolute',
     top: 4,

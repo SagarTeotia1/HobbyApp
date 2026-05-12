@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { skillLevelCardStyles as styles } from './SkillLevelCard.styles';
+import { colors } from '../../../../app/theme';
 import type { DifficultyLevel } from '../../../../shared/types/card.types';
 
 export interface SkillLevelCardProps {
@@ -21,21 +22,21 @@ const META: Record<DifficultyLevel, {
     label: 'Beginner',
     description: 'Just starting out',
     traits: ['Core concepts first', 'Simple language', 'Lots of examples'],
-    accentBg: '#BBF7D0',
+    accentBg: colors.skillBeginner,
   },
   intermediate: {
     emoji: '🔥',
     label: 'Mid-level',
     description: 'Know the basics',
     traits: ['Skip the obvious', 'Practical techniques', 'Faster progression'],
-    accentBg: '#FED7AA',
+    accentBg: colors.skillIntermediate,
   },
   advanced: {
     emoji: '⚡',
     label: 'Advanced',
     description: 'Going deep',
     traits: ['Edge cases & nuance', 'Expert-level detail', 'Challenge mode on'],
-    accentBg: '#C4B5FD',
+    accentBg: colors.skillAdvanced,
   },
 };
 

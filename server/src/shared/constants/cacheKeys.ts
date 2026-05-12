@@ -26,6 +26,14 @@ export const cacheKeys = {
 
   // Reference data
   hobbiesAll: () => `hobbies:all`,
+
+  // YouTube video results per hobby+topic+level
+  youtubeVideos: (hobbyId: string, topicId: string, skillLevel: string) =>
+    `yt:videos:${hobbyId}:${topicId}:${skillLevel}`,
+
+  // AI comic panel per hobby+topic+page
+  comicPanel: (hobbyId: string, topicId: string, page: number) =>
+    `comic:panel:${hobbyId}:${topicId}:${page}`,
 } as const;
 
 // TTLs in seconds. Mirrors CLAUDE.md §13.
@@ -38,4 +46,6 @@ export const cacheTTL = {
   session: 60 * 60 * 4,          // 4h
   rateLimit: 60,                 // 60s — default for all rate-limit windows
   hobbiesAll: 60 * 60 * 24,      // 24h
+  youtubeVideos: 60 * 60 * 6,   // 6h
+  comicPanel: 60 * 60 * 12,     // 12h — image URLs valid long enough
 } as const;

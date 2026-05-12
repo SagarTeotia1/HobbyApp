@@ -5,6 +5,7 @@ import { OnboardingNavigator } from './OnboardingNavigator';
 import { AppNavigator } from './AppNavigator';
 import { ROUTES } from './routes';
 import { useUserStore } from '../store/rootStore';
+import { registerAuthExpiredHandler } from '../../shared/services/api.client';
 import { colors } from '../theme';
 import type { RootStackParamList } from './types';
 
@@ -29,6 +30,12 @@ export function RootNavigator() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    registerAuthExpiredHandler(() => {
+      useUserStore.getState().reset();
+    });
+  }, []);
 
   return (
     <NavigationContainer theme={navTheme}>

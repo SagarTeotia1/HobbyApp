@@ -26,7 +26,7 @@ export function AIChatMessageList({ messages, isStreaming }: AIChatMessageListPr
       contentContainerStyle={aiChatStyles.messageListContent}
       showsVerticalScrollIndicator={false}>
       {messages.map((m) => (
-        <AIChatBubble key={m.id} role={m.role} content={m.content} />
+        <AIChatBubble key={m.id} role={m.role} content={m.content} isError={m.isError} />
       ))}
       {isStreaming ? <AIChatTypingIndicator /> : null}
     </ScrollView>

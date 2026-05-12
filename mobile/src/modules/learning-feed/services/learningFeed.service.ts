@@ -1,7 +1,6 @@
 import { apiClient, unwrap } from '../../../shared/services/api.client';
 import type { ApiEnvelope } from '../../../shared/types/api.types';
 import type { LearningCard, CardInteraction } from '../../../shared/types/card.types';
-import type { FeedTopic } from '../types/feed.types';
 
 export interface FeedQuery {
   hobbyId: string;
@@ -54,15 +53,6 @@ export const learningFeedService = {
 
   async recordInteraction(payload: InteractionPayload): Promise<{ xpDelta: number; newXPTotal: number }> {
     return unwrap(apiClient.post<ApiEnvelope<{ xpDelta: number; newXPTotal: number }>>('/feed/signal', payload));
-  },
-
-  async getTopicVideos(hobbyId: string, topicId: string): Promise<FeedTopic> {
-    const data = await unwrap(
-      apiClient.get<ApiEnvelope<{ topic: FeedTopic; hobbyName: string }>>(
-        `/curriculum/${hobbyId}/topics/${topicId}`,
-      ),
-    );
-    return data.topic;
   },
 
   async simplifyCard(payload: { cardId: string; hobbyId: string }): Promise<string> {

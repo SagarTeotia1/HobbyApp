@@ -16,6 +16,7 @@ export const ROUTES = {
   DASHBOARD:    'App.Dashboard',
   TOPIC_DETAIL: 'App.TopicDetail',
   LEARN_GRAPH:  'App.LearnGraph',
+  COMIC:        'App.Comic',
 } as const;
 
 export type RouteName = (typeof ROUTES)[keyof typeof ROUTES];

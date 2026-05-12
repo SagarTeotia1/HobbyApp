@@ -8,7 +8,7 @@ import { buildCardGenerationPrompt } from './prompts/cardGeneration';
 import { buildSimplifyCardPrompt } from './prompts/simplifyCard';
 import { buildChatSystemPrompt } from './prompts/chatSystem';
 import type { AIHobbySuggestion } from './ai.types';
-import type { AIChatInput, AIChatActionInput, HobbySuggestInput, SimplifyCardInput } from './ai.validator';
+import type { AIChatInput, AIChatActionInput, HobbySuggestInput } from './ai.validator';
 import { UserModel } from '../../models/User.model';
 import { UserProgressModel } from '../../models/UserProgress.model';
 import type { DifficultyLevel, LearningCardType } from '../../shared/types/common.types';
@@ -55,6 +55,11 @@ async function generateJSONWithProviders<T>(systemPrompt: string, userPrompt: st
 }
 
 export const aiService = {
+  // Generic JSON generation — used by other modules that need AI without coupling to specific prompts
+  async generateRawJSON<T>(systemPrompt: string, userPrompt: string): Promise<T> {
+    return generateJSONWithProviders<T>(systemPrompt, userPrompt);
+  },
+
   async validateHobby(name: string): Promise<{ isValid: boolean; normalizedName: string; slug: string }> {
     const trimmed = name.trim();
     if (!trimmed) return { isValid: false, normalizedName: '', slug: '' };
@@ -167,6 +172,24 @@ export const aiService = {
     }
   },
 
+  async generateYouTubeSearchQuery(
+    hobbyName: string,
+    topicName: string,
+    skillLevel: string,
+  ): Promise<string> {
+    const systemPrompt = 'You are a YouTube search query optimizer. Output strict JSON only: { "query": "..." }';
+    const userPrompt =
+      `Generate the best YouTube search query to find a high-quality, embeddable tutorial video about "${topicName}" within "${hobbyName}" for a ${skillLevel} learner. ` +
+      'Make it specific enough to surface educational content but broad enough to get results. ' +
+      'Output strict JSON: { "query": "..." }';
+    try {
+      const result = await generateJSONWithProviders<{ query: string }>(systemPrompt, userPrompt);
+      return result.query?.trim() || `${hobbyName} ${topicName} ${skillLevel} tutorial`;
+    } catch {
+      return `${hobbyName} ${topicName} ${skillLevel} tutorial`;
+    }
+  },
+
   async generateVideoTitle(hobbyName: string, videoUrl: string): Promise<{ title: string; creator: string }> {
     const userPrompt =
       `A learner is studying "${hobbyName}". They are about to watch a video from this URL: ${videoUrl}\n` +
@@ -180,12 +203,16 @@ export const aiService = {
     }
   },
 
-  async simplifyCard(_userId: string, _input: SimplifyCardInput): Promise<{ simplifiedContent: string }> {
+  async simplifyCard(input: {
+    hobby: string;
+    originalContent: string;
+    userLevel: DifficultyLevel;
+  }): Promise<{ simplifiedContent: string }> {
     try {
       const userPrompt = buildSimplifyCardPrompt({
-        hobby: 'general',
-        originalContent: 'Explain the key idea with simpler language and one example.',
-        userLevel: 'beginner',
+        hobby: input.hobby,
+        originalContent: input.originalContent,
+        userLevel: input.userLevel,
       });
       return await generateJSONWithProviders(SYSTEM_PROMPT_SIMPLIFY, userPrompt);
     } catch {

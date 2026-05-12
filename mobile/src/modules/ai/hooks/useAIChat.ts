@@ -26,9 +26,8 @@ export function useAIChat(hobbyId: string) {
         const reply = await aiService.chat(message, hobbyId, history);
         useAIStore.getState().appendChunk(assistantId, reply);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error('[useAIChat] chat failed:', msg, err);
-        useAIStore.getState().appendChunk(assistantId, `Error: ${msg}`);
+        console.error('[useAIChat] chat failed:', err);
+        useAIStore.getState().markError(assistantId);
       } finally {
         useAIStore.getState().setStreaming(false);
       }

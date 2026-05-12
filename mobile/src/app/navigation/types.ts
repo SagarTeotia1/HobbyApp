@@ -26,6 +26,7 @@ export type AppStackParamList = {
   [ROUTES.DASHBOARD]:    undefined;
   [ROUTES.TOPIC_DETAIL]: TopicScreenParams;
   [ROUTES.LEARN_GRAPH]:  TopicScreenParams;
+  [ROUTES.COMIC]:        TopicScreenParams;
 };
 
 export type RootStackParamList = {

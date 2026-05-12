@@ -2,7 +2,7 @@ import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestCo
 import { storageService } from './storage.service';
 import type { ApiEnvelope } from '../types/api.types';
 
-const DEV_LAN_BASE_URL = 'http://192.168.1.5:3000/api/v1';
+const DEV_LAN_BASE_URL = 'http://192.168.1.38:3000/api/v1';
 export const API_BASE_URL = __DEV__ ? DEV_LAN_BASE_URL : 'https://api.hobbyforge.app/api/v1';
 
 export const apiClient = axios.create({
@@ -10,6 +10,12 @@ export const apiClient = axios.create({
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
 });
+
+let onAuthExpired: (() => void) | null = null;
+
+export function registerAuthExpiredHandler(handler: () => void): void {
+  onAuthExpired = handler;
+}
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = storageService.getJWT();
@@ -23,7 +29,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // TODO: trigger re-auth flow
+      storageService.clearAll();
+      onAuthExpired?.();
     }
     return Promise.reject(error);
   },

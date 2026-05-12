@@ -1,27 +1,26 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Pressable, Linking } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  Pressable,
+  Linking,
+  Dimensions,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
+import YoutubeIframe, { PLAYER_STATES } from 'react-native-youtube-iframe';
 import { colors, spacing, radius } from '../../../../app/theme';
 
 interface Props {
   youtubeId?: string;
-  videoUrl?: string;   // Cloudflare R2 / direct MP4
+  videoUrl?: string;
 }
 
-// Injected only for YouTube embeds — detects "Video unavailable" overlay
-const YT_ERROR_DETECT_JS = `
-  (function poll() {
-    var el = document.querySelector('.ytp-error') ||
-             document.querySelector('.ytp-error-content') ||
-             document.querySelector('[class*="unavailable"]');
-    if (el && el.offsetParent !== null) {
-      window.ReactNativeWebView.postMessage('VIDEO_UNAVAILABLE');
-    } else {
-      setTimeout(poll, 1000);
-    }
-  })();
-  true;
-`;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const PLAYER_HEIGHT = Math.round(SCREEN_WIDTH * (9 / 16));
+const VIDEO_BG = '#000000';
+const VIDEO_FALLBACK_BG = '#111111';
 
 function buildDirectVideoHtml(url: string): string {
   return `<!DOCTYPE html>
@@ -31,46 +30,38 @@ function buildDirectVideoHtml(url: string): string {
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width:100%; height:100%; background:#000; overflow:hidden; }
-    video {
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-    }
+    video { width:100%; height:100%; object-fit:contain; display:block; }
   </style>
 </head>
 <body>
-  <video
-    src="${url}"
-    controls
-    autoplay
-    playsinline
-    webkit-playsinline
-    x5-playsinline
-  ></video>
+  <video src="${url}" controls autoplay playsinline webkit-playsinline></video>
 </body>
 </html>`;
 }
 
 export function VideoPlayer({ youtubeId, videoUrl }: Props) {
   const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
-  const webviewRef = useRef<InstanceType<typeof WebView>>(null);
+  const [error, setError] = useState(false);
 
-  const isDirect = !!videoUrl;
+  const onReady = useCallback(() => setLoading(false), []);
 
-  const youtubeAppUrl = youtubeId ? `vnd.youtube://${youtubeId}` : null;
-  const youtubeFallbackUrl = youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : null;
-  const youtubeEmbedUrl = youtubeId
-    ? `https://www.youtube.com/embed/${youtubeId}?playsinline=1&modestbranding=1&rel=0&showinfo=0&enablejsapi=1`
-    : null;
+  const onChangeState = useCallback((state: PLAYER_STATES) => {
+    if (state === PLAYER_STATES.UNSTARTED || state === PLAYER_STATES.VIDEO_CUED) {
+      setLoading(false);
+    }
+  }, []);
 
-  const openInYouTube = () => {
-    if (!youtubeAppUrl || !youtubeFallbackUrl) return;
-    Linking.canOpenURL(youtubeAppUrl).then((can) =>
-      Linking.openURL(can ? youtubeAppUrl! : youtubeFallbackUrl!),
-    );
-  };
+  const onError = useCallback((_err: string) => {
+    setLoading(false);
+    setError(true);
+  }, []);
+
+  const openInYouTube = useCallback(() => {
+    if (!youtubeId) return;
+    const appUrl = `vnd.youtube://${youtubeId}`;
+    const webUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+    Linking.canOpenURL(appUrl).then((can) => Linking.openURL(can ? appUrl : webUrl));
+  }, [youtubeId]);
 
   if (!videoUrl && !youtubeId) {
     return (
@@ -80,14 +71,11 @@ export function VideoPlayer({ youtubeId, videoUrl }: Props) {
     );
   }
 
-  if (unavailable) {
+  if (error) {
     return (
       <View style={styles.fallback}>
         <Text style={styles.fallbackIcon}>🎬</Text>
-        <Text style={styles.fallbackTitle}>Embedding disabled</Text>
-        <Text style={styles.fallbackSub}>
-          This video can't be embedded here.
-        </Text>
+        <Text style={styles.fallbackTitle}>Video unavailable</Text>
         {youtubeId && (
           <Pressable
             style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed]}
@@ -108,10 +96,30 @@ export function VideoPlayer({ youtubeId, videoUrl }: Props) {
         </View>
       )}
 
-      {isDirect ? (
-        // Cloudflare R2 / direct MP4 — injected HTML5 <video> player
+      {youtubeId ? (
+        <YoutubeIframe
+          videoId={youtubeId}
+          height={PLAYER_HEIGHT}
+          width={SCREEN_WIDTH}
+          play={false}
+          onReady={onReady}
+          onChangeState={onChangeState}
+          onError={onError}
+          forceAndroidAutoplay
+          contentScale={0.82}
+          webViewProps={{
+            allowsFullscreenVideo: true,
+            allowsInlineMediaPlayback: true,
+            mediaPlaybackRequiresUserAction: false,
+          }}
+          initialPlayerParams={{
+            rel: false,
+            controls: true,
+            preventFullScreen: false,
+          }}
+        />
+      ) : (
         <WebView
-          ref={webviewRef}
           style={[styles.webview, loading && styles.hidden]}
           source={{ html: buildDirectVideoHtml(videoUrl!) }}
           allowsFullscreenVideo
@@ -121,29 +129,7 @@ export function VideoPlayer({ youtubeId, videoUrl }: Props) {
           domStorageEnabled
           originWhitelist={['*']}
           onLoadEnd={() => setLoading(false)}
-          onError={() => setUnavailable(true)}
-        />
-      ) : (
-        // YouTube embed
-        <WebView
-          ref={webviewRef}
-          style={[styles.webview, loading && styles.hidden]}
-          source={{ uri: youtubeEmbedUrl! }}
-          allowsFullscreenVideo
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          javaScriptEnabled
-          domStorageEnabled
-          thirdPartyCookiesEnabled
-          injectedJavaScript={YT_ERROR_DETECT_JS}
-          onMessage={(e) => {
-            if (e.nativeEvent.data === 'VIDEO_UNAVAILABLE') setUnavailable(true);
-          }}
-          onLoadEnd={() => setLoading(false)}
-          onError={() => setUnavailable(true)}
-          onHttpError={(e) => {
-            if (e.nativeEvent.statusCode >= 400) setUnavailable(true);
-          }}
+          onError={() => onError('webview_error')}
         />
       )}
     </View>
@@ -151,21 +137,21 @@ export function VideoPlayer({ youtubeId, videoUrl }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000', overflow: 'hidden' },
+  root: { flex: 1, backgroundColor: VIDEO_BG, overflow: 'hidden', justifyContent: 'center' },
   webview: { flex: 1 },
   hidden: { opacity: 0 },
   loader: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000',
+    backgroundColor: VIDEO_BG,
     gap: 12,
     zIndex: 1,
   },
   loaderText: { color: colors.textInverse, fontSize: 13, fontWeight: '600' },
   fallback: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: VIDEO_FALLBACK_BG,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
@@ -178,22 +164,15 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
     textAlign: 'center',
   },
-  fallbackSub: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   watchBtn: {
     marginTop: spacing.md,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: colors.textInverse,
     borderRadius: radius.md,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
     backgroundColor: colors.primary,
-    shadowColor: '#fff',
+    shadowColor: colors.textInverse,
     shadowOffset: { width: 3, height: 3 },
     shadowRadius: 0,
     shadowOpacity: 0.4,
@@ -205,5 +184,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
-  watchBtnText: { fontSize: 14, fontWeight: '900', color: '#fff' },
+  watchBtnText: { fontSize: 14, fontWeight: '900', color: colors.textInverse },
 });

@@ -11,18 +11,37 @@ export const colors = {
   // ─── Brand ──────────────────────────────────────────────────────
   primary:      '#004643', // deep teal
   primaryLight: '#DAF0EE', // teal tint for card backgrounds
+  primaryDim:   '#C5E8E5', // dimmed primary for selected/chip states
 
   // ─── Neo-brutal accent palette ──────────────────────────────────
-  yellow:  '#FFD600',  // signature neo-brutal yellow
-  coral:   '#FF6B6B',  // warm red
-  violet:  '#8B5CF6',  // purple
-  blue:    '#3B82F6',  // electric blue
-  mint:    '#10B981',  // fresh green
-  orange:  '#F97316',  // vivid orange
-  pink:    '#EC4899',  // hot pink
-  indigo:  '#6366F1',  // indigo
-  amber:   '#F59E0B',  // amber
-  lime:    '#84CC16',  // lime
+  yellow:      '#FFD600',  // signature neo-brutal yellow
+  yellowLight: '#FFFDE7',  // pale yellow tint (active/selected states)
+  coral:       '#FF6B6B',  // warm red
+  red:         '#EF4444',  // pure red (challenge/error accents)
+  violet:      '#8B5CF6',  // purple
+  blue:        '#3B82F6',  // electric blue
+  mint:        '#10B981',  // fresh green
+  orange:      '#F97316',  // vivid orange
+  pink:        '#EC4899',  // hot pink
+  indigo:      '#6366F1',  // indigo
+  amber:       '#F59E0B',  // amber
+  lime:        '#84CC16',  // lime
+
+  // ─── Skill level accents ─────────────────────────────────────────
+  skillBeginner:     '#BBF7D0', // light green
+  skillIntermediate: '#FED7AA', // light orange
+  skillAdvanced:     '#C4B5FD', // light purple
+
+  // ─── Dark / comic surfaces ───────────────────────────────────────
+  videoBg:           '#0A0A0A', // near-black for video/comic root bg
+  darkSurface:       '#111111', // primary dark panel surface
+  darkSurfaceRaised: '#1A1A1A', // elevated dark surface
+  darkBorder:        '#222222', // borders on dark bg
+  darkBorderStrong:  '#333333', // stronger borders on dark bg
+  darkBorderBright:  '#444444', // bright dot/accent borders on dark bg
+  darkTextDim:       '#555555', // dimmed label text on dark bg
+  darkTextMuted:     '#666666', // muted text on dark bg
+  darkTextFaint:     '#888888', // faint/hint text on dark bg
 
   // ─── Text ───────────────────────────────────────────────────────
   text:        '#0A0A0A', // near-black — strong contrast

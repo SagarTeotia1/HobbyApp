@@ -9,12 +9,12 @@ import { ApiResponse } from './shared/utils/ApiResponse';
 import { onboardingRouter } from './modules/onboarding/onboarding.router';
 import { learningFeedRouter } from './modules/learning-feed/learningFeed.router';
 import { progressRouter } from './modules/progress/progress.router';
-import { leaderboardRouter } from './modules/leaderboard/leaderboard.router';
 import { aiRouter } from './modules/ai/ai.router';
 import { hobbiesRouter } from './modules/hobbies/hobbies.router';
-import { profileRouter } from './modules/profile/profile.router';
 import { curriculumRouter } from './modules/curriculum/curriculum.router';
 import { roadmapRouter } from './modules/roadmap/roadmap.router';
+import { youtubeRouter } from './modules/youtube/youtube.router';
+import { comicRouter } from './modules/comic/comic.router';
 
 export function createApp(): Application {
   const app = express();
@@ -36,12 +36,12 @@ export function createApp(): Application {
   app.use('/api/v1/onboarding', onboardingRouter);
   app.use('/api/v1/feed', learningFeedRouter);
   app.use('/api/v1/progress', progressRouter);
-  app.use('/api/v1/leaderboard', leaderboardRouter);
   app.use('/api/v1/ai', aiRouter);
   app.use('/api/v1/hobbies', hobbiesRouter);
-  app.use('/api/v1/profile', profileRouter);
   app.use('/api/v1/curriculum', curriculumRouter);
   app.use('/api/v1/roadmap',    roadmapRouter);
+  app.use('/api/v1/youtube',   youtubeRouter);
+  app.use('/api/v1/comic',     comicRouter);
 
   app.use((_req, res) => {
     ApiResponse.error(res, 404, 'NOT_FOUND', 'Route not found');

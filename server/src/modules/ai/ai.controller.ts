@@ -3,6 +3,10 @@ import { ApiResponse } from '../../shared/utils/ApiResponse';
 import { ApiError } from '../../shared/utils/ApiError';
 import { aiChatActionSchema, aiChatSchema, hobbySuggestSchema, simplifyCardSchema } from './ai.validator';
 import { aiService } from './ai.service';
+import { CardModel } from '../../models/Card.model';
+import { UserModel } from '../../models/User.model';
+import { HobbyModel } from '../../models/Hobby.model';
+import type { DifficultyLevel } from '../../shared/types/common.types';
 
 export const aiController = {
   async suggestHobbies(req: Request, res: Response): Promise<Response> {
@@ -23,8 +27,19 @@ export const aiController = {
 
   async simplifyCard(req: Request, res: Response): Promise<Response> {
     if (!req.user) throw ApiError.unauthorized();
-    const input = simplifyCardSchema.parse(req.body);
-    const data = await aiService.simplifyCard(req.user.uuid, input);
+    const { cardId, hobbyId } = simplifyCardSchema.parse(req.body);
+    const [card, user, hobby] = await Promise.all([
+      CardModel.findOne({ _id: cardId, hobbyId }).lean(),
+      UserModel.findOne({ uuid: req.user.uuid }).lean(),
+      HobbyModel.findOne({ slug: hobbyId }).lean(),
+    ]);
+    if (!card) throw ApiError.notFound('Card not found');
+    const data = await aiService.simplifyCard({
+      hobby: hobby?.name ?? hobbyId,
+      originalContent: card.frontContent,
+      userLevel: (user?.skillLevel as DifficultyLevel) ?? 'beginner',
+    });
+    await CardModel.updateOne({ _id: cardId }, { $set: { simplifiedContent: data.simplifiedContent } });
     return ApiResponse.ok(res, data);
   },
 

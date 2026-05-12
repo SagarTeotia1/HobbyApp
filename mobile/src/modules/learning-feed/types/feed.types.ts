@@ -6,6 +6,7 @@ export interface FeedVideo {
   videoUrl?: string;
   thumbnailUrl?: string;
   keyInsight: string;
+  durationSeconds?: number;
 }
 
 export interface FeedTopic {

@@ -8,6 +8,7 @@ import { HobbySearchBar } from '../components/HobbySearchBar/HobbySearchBar';
 import { useOnboardingStore } from '../store/onboarding.store';
 import { hobbySelectionStyles as styles } from './HobbySelectionScreen.styles';
 import { CURRICULUM } from '../../../shared/constants/curriculum';
+import { matchHobbyInCurriculum } from '../../../shared/utils/hobbySearch';
 import type { OnboardingStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
 
@@ -20,36 +21,6 @@ const FEATURED_HOBBIES = FEATURED_IDS.map((id) => {
   return { id: h.id, name: h.name, emoji: h.emoji, bg: h.accentColor };
 });
 
-function matchHobbyInCurriculum(query: string): string {
-  const q = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  if (!q) return query;
-
-  // 1. exact id match
-  const byId = CURRICULUM.find((h) => h.id === q.replace(/\s+/g, '-'));
-  if (byId) return byId.id;
-
-  // 2. exact name match
-  const byName = CURRICULUM.find((h) => h.name.toLowerCase() === q);
-  if (byName) return byName.id;
-
-  // 3. curriculum name contains query
-  const nameContains = CURRICULUM.find((h) => h.name.toLowerCase().includes(q));
-  if (nameContains) return nameContains.id;
-
-  // 4. query contains curriculum name
-  const queryContains = CURRICULUM.find((h) => q.includes(h.name.toLowerCase()));
-  if (queryContains) return queryContains.id;
-
-  // 5. word-level overlap
-  const words = q.split(' ').filter(Boolean);
-  const byWords = CURRICULUM.find((h) =>
-    words.some((w) => h.name.toLowerCase().includes(w) || h.id.includes(w)),
-  );
-  if (byWords) return byWords.id;
-
-  // no match — return slugified query (unmapped custom hobby)
-  return q.replace(/\s+/g, '-');
-}
 
 export function HobbySelectionScreen() {
   const navigation = useNavigation<Nav>();

@@ -9,6 +9,13 @@ interface Props {
   totalTopics: number;
 }
 
+const XP_FLOAT_TRANSLATE_Y = -20;
+const XP_FLOAT_TEXT_TOP = -22;
+const BAR_ANIM_DURATION = 600;
+const XP_FLOAT_MOVE_DURATION = 500;
+const XP_FLOAT_FADE_DELAY = 250;
+const XP_FLOAT_FADE_DURATION = 300;
+
 export function FeedXPBar({ xpDelta, streak, completedTopics, totalTopics }: Props) {
   const deltaOpacity = useRef(new Animated.Value(0)).current;
   const deltaTranslate = useRef(new Animated.Value(0)).current;
@@ -19,7 +26,7 @@ export function FeedXPBar({ xpDelta, streak, completedTopics, totalTopics }: Pro
   useEffect(() => {
     Animated.timing(barWidth, {
       toValue: progress,
-      duration: 600,
+      duration: BAR_ANIM_DURATION,
       useNativeDriver: false,
     }).start();
   }, [progress, barWidth]);
@@ -29,10 +36,10 @@ export function FeedXPBar({ xpDelta, streak, completedTopics, totalTopics }: Pro
     deltaOpacity.setValue(1);
     deltaTranslate.setValue(0);
     Animated.parallel([
-      Animated.timing(deltaTranslate, { toValue: -20, duration: 500, useNativeDriver: true }),
+      Animated.timing(deltaTranslate, { toValue: XP_FLOAT_TRANSLATE_Y, duration: XP_FLOAT_MOVE_DURATION, useNativeDriver: true }),
       Animated.sequence([
-        Animated.delay(250),
-        Animated.timing(deltaOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        Animated.delay(XP_FLOAT_FADE_DELAY),
+        Animated.timing(deltaOpacity, { toValue: 0, duration: XP_FLOAT_FADE_DURATION, useNativeDriver: true }),
       ]),
     ]).start();
   }, [xpDelta, deltaOpacity, deltaTranslate]);
@@ -153,7 +160,7 @@ const styles = StyleSheet.create({
   deltaText: {
     position: 'absolute',
     right: 0,
-    top: -22,
+    top: XP_FLOAT_TEXT_TOP,
     fontSize: 12,
     fontWeight: '900',
     color: colors.yellow,

@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
+import { ScreenHeader } from '../../../shared/components/ui/ScreenHeader/ScreenHeader';
+import { GraphNodePanel } from '../components/GraphNodePanel/GraphNodePanel';
+import { LearnGraph } from '../components/LearnGraph';
 import { colors, spacing, radius } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
 import type { AppStackParamList } from '../../../app/navigation/types';
 import { useLearnGraph } from '../hooks/useLearnGraph';
-import { LearnGraph } from '../components/LearnGraph';
 import type { GraphNode } from '../types/roadmap.types';
 
 type Nav   = NativeStackNavigationProp<AppStackParamList, typeof ROUTES.LEARN_GRAPH>;
 type Route = RouteProp<AppStackParamList, typeof ROUTES.LEARN_GRAPH>;
 
 const TYPE_COLORS: Record<string, string> = {
-  root:    colors.primary,
+  root: colors.primary,
   concept: colors.yellow,
-  detail:  colors.blue,
+  detail: colors.blue,
   example: colors.mint,
 };
 
@@ -35,37 +30,18 @@ export function LearnGraphScreen() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   useEffect(() => {
-    void fetch({
-      hobbyId:   params.hobbyId,
-      topicId:   params.topicId,
-      topicName: params.topicName,
-      hobbyName: params.hobbyName,
-    });
-  }, []);
+    void fetch({ hobbyId: params.hobbyId, topicId: params.topicId, topicName: params.topicName, hobbyName: params.hobbyName });
+  }, [fetch, params.hobbyId, params.topicId, params.topicName, params.hobbyName]);
 
-  function handleNodePress(node: GraphNode) {
-    setSelectedNode(prev => (prev?.id === node.id ? null : node));
-  }
+  const handleRetry = () => void fetch({ hobbyId: params.hobbyId, topicId: params.topicId, topicName: params.topicName, hobbyName: params.hobbyName });
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable
-          style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
-          onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {params.topicName}
-        </Text>
-        <View style={styles.headerRight} />
-      </View>
+      <ScreenHeader title={params.topicName} onBack={() => navigation.goBack()} />
 
-      {/* Legend */}
       {graph !== null && (
         <View style={styles.legend}>
-          {(['root', 'concept', 'detail', 'example'] as const).map(type => (
+          {(['root', 'concept', 'detail', 'example'] as const).map((type) => (
             <View key={type} style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: TYPE_COLORS[type] }]} />
               <Text style={styles.legendLabel}>{type}</Text>
@@ -74,7 +50,6 @@ export function LearnGraphScreen() {
         </View>
       )}
 
-      {/* Loading */}
       {isLoading && (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -82,51 +57,28 @@ export function LearnGraphScreen() {
         </View>
       )}
 
-      {/* Error */}
       {error !== null && (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <Pressable
-            style={styles.retryBtn}
-            onPress={() => void fetch({
-              hobbyId: params.hobbyId, topicId: params.topicId,
-              topicName: params.topicName, hobbyName: params.hobbyName,
-            })}>
+          <Pressable style={styles.retryBtn} onPress={handleRetry}>
             <Text style={styles.retryText}>Retry</Text>
           </Pressable>
         </View>
       )}
 
-      {/* Graph */}
       {graph !== null && !isLoading && (
         <LearnGraph
           nodes={graph.nodes}
           edges={graph.edges}
           selectedId={selectedNode?.id ?? null}
-          onNodePress={handleNodePress}
+          onNodePress={(node) => setSelectedNode((prev) => (prev?.id === node.id ? null : node))}
         />
       )}
 
-      {/* Selected node panel */}
       {selectedNode !== null && (
-        <View style={styles.nodePanel}>
-          <View style={[styles.nodePanelAccent, { backgroundColor: TYPE_COLORS[selectedNode.type] }]} />
-          <View style={styles.nodePanelContent}>
-            <View style={styles.nodePanelHeader}>
-              <Text style={styles.nodePanelType}>{selectedNode.type.toUpperCase()}</Text>
-              <Pressable onPress={() => setSelectedNode(null)}>
-                <Text style={styles.nodePanelClose}>✕</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.nodePanelTitle}>{selectedNode.label}</Text>
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.nodePanelScroll}>
-              <Text style={styles.nodePanelDesc}>{selectedNode.description}</Text>
-            </ScrollView>
-          </View>
-        </View>
+        <GraphNodePanel node={selectedNode} onClose={() => setSelectedNode(null)} />
       )}
 
-      {/* Tap hint */}
       {graph !== null && selectedNode === null && (
         <View style={styles.tapHint}>
           <Text style={styles.tapHintText}>Tap any node to see its description</Text>
@@ -138,44 +90,6 @@ export function LearnGraphScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.bgElevated,
-  },
-  backBtn: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.bg,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 2, height: 2 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 2,
-  },
-  backBtnPressed: {
-    transform: [{ translateX: 2 }, { translateY: 2 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  backText: { fontSize: 13, fontWeight: '800', color: colors.text },
-  headerTitle: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.text,
-    textAlign: 'center',
-    marginHorizontal: spacing.sm,
-  },
-  headerRight: { width: 60 },
   legend: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -200,28 +114,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgElevated,
   },
   retryText: { fontWeight: '800', color: colors.text },
-  nodePanel: {
-    borderTopWidth: 3,
-    borderTopColor: colors.border,
-    backgroundColor: colors.bgElevated,
-    flexDirection: 'row',
-    maxHeight: 220,
-  },
-  nodePanelAccent: { width: 6 },
-  nodePanelContent: { flex: 1, padding: spacing.md },
-  nodePanelHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs },
-  nodePanelType: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    color: colors.textDim,
-  },
-  nodePanelClose: { fontSize: 14, color: colors.textDim, fontWeight: '700' },
-  nodePanelTitle: { fontSize: 16, fontWeight: '900', color: colors.text, marginBottom: spacing.xs },
-  nodePanelScroll: {
-    maxHeight: 140,
-  },
-  nodePanelDesc: { fontSize: 13, fontWeight: '500', color: colors.textMuted, lineHeight: 19 },
   tapHint: {
     paddingVertical: spacing.sm,
     alignItems: 'center',

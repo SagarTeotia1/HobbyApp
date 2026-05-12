@@ -1,43 +1,63 @@
 import React from 'react';
-import { Pressable, TextInput, View } from 'react-native';
-import { aiChatStyles } from './AIChatInterface.styles';
-import { colors } from '@app/theme';
-import { Icon } from '../../ui/Icon/Icon';
+import { View, TextInput, Pressable, Text, StyleSheet } from 'react-native';
+import { colors, spacing, radius } from '@app/theme';
 
-export interface AIChatInputProps {
+interface Props {
   value: string;
-  onChangeText: (v: string) => void;
+  onChangeText: (text: string) => void;
   onSubmit: () => void;
   placeholder?: string;
   disabled?: boolean;
 }
 
-export function AIChatInput({
-  value,
-  onChangeText,
-  onSubmit,
-  placeholder,
-  disabled = false,
-}: AIChatInputProps) {
+export function AIChatInput({ value, onChangeText, onSubmit, placeholder, disabled }: Props) {
   return (
-    <View style={aiChatStyles.inputRow}>
+    <View style={styles.row}>
       <TextInput
+        style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        onSubmitEditing={onSubmit}
         placeholder={placeholder ?? 'Ask anything...'}
-        placeholderTextColor={colors.textDim}
-        style={aiChatStyles.input}
+        placeholderTextColor={colors.textMuted}
+        onSubmitEditing={onSubmit}
         returnKeyType="send"
         editable={!disabled}
+        multiline={false}
       />
       <Pressable
-        accessibilityRole="button"
+        style={[styles.sendBtn, disabled && styles.sendBtnDisabled]}
         onPress={onSubmit}
-        disabled={disabled || value.trim().length === 0}
-        style={aiChatStyles.sendButton}>
-        <Icon name="send" size={16} color={colors.text} />
+        disabled={disabled}>
+        <Text style={styles.sendIcon}>↑</Text>
       </Pressable>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  input: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 15,
+    paddingVertical: spacing.xs,
+  },
+  sendBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendBtnDisabled: { opacity: 0.4 },
+  sendIcon: { fontSize: 16, color: colors.textInverse, fontWeight: '900' },
+});

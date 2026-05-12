@@ -1,56 +1,38 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { roadmapService } from '../services/roadmap.service';
+import { queryKeys } from '../../../shared/constants/queryKeys';
 import type { RoadmapData } from '../types/roadmap.types';
 
-// Module-level cache so stages survive screen remounts (e.g. back from FeedScreen)
-const roadmapCache: Record<string, RoadmapData> = {};
-
-export function invalidateRoadmapCache(hobbyId: string): void {
-  delete roadmapCache[hobbyId];
-}
-
-interface UseRoadmapState {
+interface UseRoadmapResult {
   roadmap: RoadmapData | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
+  invalidate: () => void;
 }
 
-export function useRoadmap(hobbyId: string): UseRoadmapState {
-  const [roadmap, setRoadmap] = useState<RoadmapData | null>(roadmapCache[hobbyId] ?? null);
-  const [loading, setLoading] = useState(!roadmapCache[hobbyId]);
-  const [error, setError] = useState<string | null>(null);
-  const fetchedRef = useRef<string | null>(null);
+export function useRoadmap(hobbyId: string): UseRoadmapResult {
+  const queryClient = useQueryClient();
 
-  const fetch = useCallback(async () => {
-    if (!hobbyId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await roadmapService.getRoadmap(hobbyId);
-      roadmapCache[hobbyId] = data;
-      setRoadmap(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load roadmap');
-    } finally {
-      setLoading(false);
-    }
-  }, [hobbyId]);
+  const { data: roadmap = null, isLoading, error, refetch } = useQuery({
+    queryKey: queryKeys.roadmap.byId(hobbyId),
+    queryFn: () => roadmapService.getRoadmap(hobbyId),
+    enabled: !!hobbyId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    // Only fetch once per hobbyId per session unless explicitly refetched
-    if (fetchedRef.current === hobbyId) return;
-    fetchedRef.current = hobbyId;
-    if (!roadmapCache[hobbyId]) {
-      void fetch();
-    }
-  }, [hobbyId, fetch]);
+  const invalidate = useCallback(() => {
+    queryClient.removeQueries({ queryKey: queryKeys.roadmap.byId(hobbyId) });
+  }, [queryClient, hobbyId]);
 
-  const refetch = useCallback(() => {
-    delete roadmapCache[hobbyId];
-    fetchedRef.current = null;
-    void fetch();
-  }, [hobbyId, fetch]);
-
-  return { roadmap, loading: loading && !roadmap, error, refetch };
+  return {
+    roadmap,
+    loading: isLoading,
+    error: error instanceof Error ? error.message : error ? 'Failed to load roadmap' : null,
+    refetch,
+    invalidate,
+  };
 }

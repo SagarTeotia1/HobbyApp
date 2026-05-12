@@ -1,21 +1,28 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { roadmapService } from '../services/roadmap.service';
 import type { LearnGraph } from '../types/roadmap.types';
+
+interface LearnGraphParams {
+  hobbyId: string;
+  topicId: string;
+  topicName: string;
+  hobbyName: string;
+}
 
 interface UseLearnGraphResult {
   graph: LearnGraph | null;
   isLoading: boolean;
   error: string | null;
-  fetch: (params: { hobbyId: string; topicId: string; topicName: string; hobbyName: string }) => Promise<void>;
+  fetch: (params: LearnGraphParams) => Promise<void>;
   reset: () => void;
 }
 
 export function useLearnGraph(): UseLearnGraphResult {
-  const [graph, setGraph]     = useState<LearnGraph | null>(null);
+  const [graph, setGraph] = useState<LearnGraph | null>(null);
   const [isLoading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  async function fetch(params: { hobbyId: string; topicId: string; topicName: string; hobbyName: string }) {
+  const fetch = useCallback(async (params: LearnGraphParams) => {
     setLoading(true);
     setError(null);
     try {
@@ -26,12 +33,12 @@ export function useLearnGraph(): UseLearnGraphResult {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  function reset() {
+  const reset = useCallback(() => {
     setGraph(null);
     setError(null);
-  }
+  }, []);
 
   return { graph, isLoading, error, fetch, reset };
 }

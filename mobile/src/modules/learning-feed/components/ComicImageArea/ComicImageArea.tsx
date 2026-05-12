@@ -32,7 +32,7 @@ export function ComicImageArea({ imageUrl, isLoading, isError, pageLabel, pageCo
           </Pressable>
         </View>
       ) : (
-        <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="contain" />
       )}
 
       {imageUrl && !isLoading && (

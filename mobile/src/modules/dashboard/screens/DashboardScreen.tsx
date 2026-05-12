@@ -9,7 +9,7 @@ import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton
 import { DashboardHeroCard } from '../components/DashboardHeroCard/DashboardHeroCard';
 import { StatsGrid } from '../components/StatsGrid/StatsGrid';
 import { NextUpCard } from '../components/NextUpCard/NextUpCard';
-import { WeeklyActivityChart } from '../components/WeeklyActivityChart/WeeklyActivityChart';
+import { RoadmapPreview } from '../components/RoadmapPreview/RoadmapPreview';
 import { ResetConfirmModal } from '../components/ResetConfirmModal/ResetConfirmModal';
 import { ChangeHobbySheet } from '../../../shared/components/ChangeHobbySheet';
 import { useUserStore } from '../../../app/store/rootStore';
@@ -175,9 +175,46 @@ export function DashboardScreen() {
                 topicName: nextTopic.title,
                 stageIndex: nextTopicIndex,
               })}
+              onRoadmap={() => navigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.ROADMAP })}
+              onLearnGraph={() => navigation.navigate(ROUTES.LEARN_GRAPH, {
+                hobbyId,
+                topicId: nextTopic.conceptId,
+                topicName: nextTopic.title,
+                hobbyName: hobby?.name ?? hobbyId,
+              })}
+              onDetails={() => navigation.navigate(ROUTES.TOPIC_DETAIL, {
+                hobbyId,
+                topicId: nextTopic.conceptId,
+                topicName: nextTopic.title,
+                hobbyName: hobby?.name ?? hobbyId,
+              })}
+              onComics={() => navigation.navigate(ROUTES.COMIC, {
+                hobbyId,
+                topicId: nextTopic.conceptId,
+                topicName: nextTopic.title,
+                hobbyName: hobby?.name ?? hobbyId,
+              })}
             />
           </>
         )}
+
+        {/* ── Roadmap Preview ── */}
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionDot, { backgroundColor: '#F4B183' }]} />
+          <Text style={styles.sectionTitle}>YOUR PATH</Text>
+        </View>
+        <RoadmapPreview
+          stages={stages}
+          hobbyId={hobbyId}
+          getTopicProgress={getTopicProgress}
+          onViewFull={() => navigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.ROADMAP })}
+          onTopicPress={(stage, index) => navigation.navigate(ROUTES.FEED, {
+            hobbyId,
+            topicId: stage.conceptId,
+            topicName: stage.title,
+            stageIndex: index,
+          })}
+        />
 
         {/* ── Stats ── */}
         <View style={styles.sectionHeader}>
@@ -192,13 +229,6 @@ export function DashboardScreen() {
             { value: Math.max(0, stages.length - completedTopics), label: 'Remaining',   icon: STAT_ICONS[3], accent: STAT_ACCENTS[3] },
           ]}
         />
-
-        {/* ── Weekly Hustle ── */}
-        <View style={styles.sectionHeader}>
-          <View style={[styles.sectionDot, { backgroundColor: '#F4B183' }]} />
-          <Text style={styles.sectionTitle}>WEEKLY HUSTLE</Text>
-        </View>
-        <WeeklyActivityChart />
 
         {/* ── Reset ── */}
         <Pressable

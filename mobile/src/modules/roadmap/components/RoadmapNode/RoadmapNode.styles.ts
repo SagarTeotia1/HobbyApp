@@ -1,39 +1,33 @@
 import { StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '../../../../app/theme';
 
-// DOT_COL_WIDTH must stay in sync with dotCol.width below
-const DOT_SIZE = 22;
-const DOT_COL_WIDTH = 36;
+export const DOT_SIZE = 28;
+export const DOT_COL_WIDTH = 44;
 const CONNECTOR_W = 3;
-const CONNECTOR_H = 28;
+const CONNECTOR_H = 20;
 
 export const styles = StyleSheet.create({
-  wrapper: {
-    // no alignItems — let timelineRow control alignment
-  },
+  wrapper: {},
   timelineRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
 
-  // ── Left timeline rail ────────────────────────────────────────────
+  // ── Left timeline rail ──────────────────────────────────────────────
   dotCol: {
     width: DOT_COL_WIDTH,
     alignItems: 'center',
   },
-
-  // connector drawn above the dot (between prev node and this one)
   connectorTrack: {
     width: CONNECTOR_W,
     height: CONNECTOR_H,
     backgroundColor: colors.borderLight,
     borderRadius: radius.pill,
     overflow: 'hidden',
-    justifyContent: 'flex-end', // fill grows upward from bottom → feels like it "connects"
+    justifyContent: 'flex-end',
   },
   connectorFill: {
     width: '100%',
-    backgroundColor: colors.primary,
     borderRadius: radius.pill,
   },
 
@@ -45,10 +39,12 @@ export const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.bgElevated,
     zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dotCompleted: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.mint,
+    borderColor: colors.border,
   },
   dotCurrent: {
     backgroundColor: colors.yellow,
@@ -58,73 +54,57 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.borderLight,
   },
+  dotNumber: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: colors.text,
+  },
+  dotNumberCompleted: {
+    color: colors.textInverse,
+  },
+  dotNumberLocked: {
+    color: colors.textDim,
+  },
 
-  // tail drawn below the dot (going toward next node)
   tail: {
     width: CONNECTOR_W,
     flex: 1,
-    minHeight: 20,
+    minHeight: 16,
     borderRadius: radius.pill,
   },
-  tailCompleted: {
-    backgroundColor: colors.primary,
-  },
-  tailPending: {
-    backgroundColor: colors.borderLight,
-  },
+  tailCompleted: { backgroundColor: colors.mint },
+  tailPending:   { backgroundColor: colors.borderLight },
 
-  // ── Right card column ─────────────────────────────────────────────
+  // ── Right card column ───────────────────────────────────────────────
   cardCol: {
     flex: 1,
     marginLeft: spacing.sm,
-    paddingBottom: CONNECTOR_H, // space so tail lines up before next node
-    gap: 6,
-  },
-  cardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardContent: {
-    flex: 1,
-  },
-  continueDivider: {
-    width: 1.5,
-    alignSelf: 'stretch',
-    backgroundColor: colors.border,
-    marginHorizontal: spacing.sm,
-    opacity: 0.3,
-  },
-  continueSection: {
-    width: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  continueBtnText: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: colors.primary,
+    paddingBottom: CONNECTOR_H,
+    gap: spacing.xs,
   },
 
-  // ── Card ──────────────────────────────────────────────────────────
+  // ── Card shell ──────────────────────────────────────────────────────
   card: {
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.bgElevated,
-    padding: spacing.md,
+    overflow: 'hidden',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 4,
   },
   cardCompleted: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
+    backgroundColor: '#E8F8F0',
+    borderColor: colors.mint,
   },
   cardCurrent: {
     backgroundColor: colors.yellow,
     borderColor: colors.border,
+    shadowOffset: { width: 5, height: 5 },
+    elevation: 5,
   },
   cardLocked: {
     backgroundColor: colors.surface,
@@ -132,91 +112,147 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
-    opacity: 0.6,
+    opacity: 0.55,
   },
   cardPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
+    transform: [{ translateX: 4 }, { translateY: 4 }],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
   },
 
-  // ── Card content ──────────────────────────────────────────────────
+  // ── Card body ────────────────────────────────────────────────────────
+  cardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  cardContent: { flex: 1, gap: spacing.xs },
+
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    justifyContent: 'space-between',
   },
-  label: {
-    fontSize: 10,
-    fontWeight: '700',
+  statusBadge: {
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  statusBadgeCompleted: { backgroundColor: colors.mint },
+  statusBadgeCurrent:   { backgroundColor: colors.primary },
+  statusBadgeLocked:    { backgroundColor: colors.borderLight },
+  statusText: {
+    fontSize: 8,
+    fontWeight: '900',
     letterSpacing: 1,
-    textTransform: 'uppercase',
+    color: colors.textInverse,
   },
-  labelCompleted: { color: colors.primary },
-  labelCurrent: { color: colors.text },
-  labelLocked: { color: colors.textDim },
-  title: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  titleLocked: {
+  statusTextDark: {
     color: colors.textDim,
   },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
+  partLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.textDim,
+    letterSpacing: 0.5,
   },
-  progressDot: {
-    width: 8,
-    height: 8,
+
+  title: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: -0.2,
+    lineHeight: 18,
+  },
+  titleLocked: { color: colors.textDim },
+  titleCurrent: { color: colors.text },
+
+  // Mini progress bar (replaces dots)
+  progressWrap: { gap: 3 },
+  progressTrack: {
+    height: 5,
+    backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: radius.pill,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+  },
+  progressFillCurrent: {
+    backgroundColor: colors.primary,
+  },
+  progressFillComplete: {
     backgroundColor: colors.mint,
   },
-  progressDotEmpty: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  checkmark: { fontSize: 15 },
-  lockIcon: { fontSize: 13 },
-
-  // ── Inline action buttons ─────────────────────────────────────────
-  actionRow: {
+  progressMeta: {
     flexDirection: 'row',
-    gap: 6,
+    justifyContent: 'space-between',
+  },
+  progressMetaText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.textMuted,
+  },
+
+  // Arrow chevron
+  chevronWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.07)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chevronWrapCurrent: {
+    backgroundColor: colors.primary,
+    borderColor: colors.border,
+  },
+  chevronText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textMuted,
+    lineHeight: 18,
+  },
+  chevronTextCurrent: {
+    color: colors.textInverse,
+  },
+  lockChevron: {
+    fontSize: 14,
+    color: colors.textDim,
+  },
+
+  // ── Action strip ─────────────────────────────────────────────────────
+  actionStrip: {
+    flexDirection: 'row',
+    borderTopWidth: 2,
+    borderTopColor: 'rgba(0,0,0,0.08)',
   },
   actionBtn: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgElevated,
-    paddingVertical: spacing.xs,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 2, height: 2 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 2,
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
   },
-  actionBtnGraph: {
-    backgroundColor: colors.primaryLight,
+  actionBtnLeft: {
+    borderRightWidth: 1.5,
+    borderRightColor: 'rgba(0,0,0,0.08)',
   },
-  actionBtnPressed: {
-    transform: [{ translateX: 2 }, { translateY: 2 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
+  actionBtnPressed: { opacity: 0.6 },
+  actionBtnIcon: { fontSize: 13 },
+  actionBtnLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
   },
-  actionBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: 0.2,
-  },
+  actionBtnLabelDetail: { color: colors.primary },
+  actionBtnLabelGraph:  { color: colors.violet },
 });

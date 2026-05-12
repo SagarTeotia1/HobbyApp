@@ -2,7 +2,7 @@ import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestCo
 import { storageService } from './storage.service';
 import type { ApiEnvelope } from '../types/api.types';
 
-const DEV_LAN_BASE_URL = 'http://172.20.10.2:3000/api/v1';
+const DEV_LAN_BASE_URL = 'http://192.168.1.38:3000/api/v1';
 export const API_BASE_URL = __DEV__ ? DEV_LAN_BASE_URL : 'https://api.hobbyforge.app/api/v1';
 
 export const apiClient = axios.create({

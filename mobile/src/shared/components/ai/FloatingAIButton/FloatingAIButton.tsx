@@ -35,23 +35,47 @@ export function FloatingAIButton({ hobbyId, bottomOffset = 0 }: Props) {
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
 
+  const panValue = useRef({ x: initialX, y: initialY });
+
+  React.useEffect(() => {
+    const id = position.addListener((value) => {
+      panValue.current = value;
+    });
+    return () => position.removeListener(id);
+  }, [position]);
+
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, gesture) =>
+        onMoveShouldSetPanResponderCapture: (_, gesture) =>
           Math.abs(gesture.dx) > FAB_DRAG_THRESHOLD || Math.abs(gesture.dy) > FAB_DRAG_THRESHOLD,
         onPanResponderGrant: () => {
-          dragStart.current = { ...currentPos.current };
+          position.setOffset({
+            x: panValue.current.x,
+            y: panValue.current.y,
+          });
+          position.setValue({ x: 0, y: 0 });
         },
-        onPanResponderMove: (_, gesture) => {
-          const nextX = Math.min(bounds.maxX, Math.max(bounds.minX, dragStart.current.x + gesture.dx));
-          const nextY = Math.min(bounds.maxY, Math.max(bounds.minY, dragStart.current.y + gesture.dy));
-          position.setValue({ x: nextX, y: nextY });
-          currentPos.current = { x: nextX, y: nextY };
-        },
+        onPanResponderMove: Animated.event(
+          [null, { dx: position.x, dy: position.y }],
+          { useNativeDriver: false },
+        ),
         onPanResponderRelease: () => {
-          // Position already clamped in onPanResponderMove
+          position.flattenOffset();
+          
+          const currentX = panValue.current.x;
+          const currentY = panValue.current.y;
+
+          let clampedX = Math.min(bounds.maxX, Math.max(bounds.minX, currentX));
+          let clampedY = Math.min(bounds.maxY, Math.max(bounds.minY, currentY));
+
+          if (currentX !== clampedX || currentY !== clampedY) {
+            Animated.spring(position, {
+              toValue: { x: clampedX, y: clampedY },
+              useNativeDriver: false,
+              friction: 5,
+            }).start();
+          }
         },
       }),
     [bounds, position],

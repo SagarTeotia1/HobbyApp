@@ -26,37 +26,62 @@ type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<AppStackParamList>
 >;
 
-const STAT_ACCENTS = ['#CFE1B9', '#FFF2CC', '#DCCCF7', '#F3B0A8'];
-const STAT_ICONS = ['✓', '📋', '⭐', '🔥'];
+const DEFAULT_VIDEOS_PER_TOPIC = 5;
+const STAT_ACCENTS = ['#DCCCF7', '#F3B0A8', '#CFE1B9', '#FFF2CC'];
+const STAT_ICONS   = ['⭐', '🔥', '✓', '📋'];
 
 export function DashboardScreen() {
   const navigation = useNavigation<Nav>();
 
-  const hobbyId = useUserStore((s) => s.currentHobbyId);
-  const xp = useUserStore((s) => s.xp);
-  const level = useUserStore((s) => s.level);
-  const streak = useUserStore((s) => s.streak);
-  const skillLevel = useUserStore((s) => s.skillLevel);
+  const hobbyId          = useUserStore((s) => s.currentHobbyId);
+  const xp               = useUserStore((s) => s.xp);
+  const level            = useUserStore((s) => s.level);
+  const streak           = useUserStore((s) => s.streak);
+  const skillLevel       = useUserStore((s) => s.skillLevel);
   const dailyTimeMinutes = useUserStore((s) => s.dailyTimeMinutes);
-  const setHobby = useUserStore((s) => s.setHobby);
-  const resetUser = useUserStore((s) => s.reset);
+  const setHobby         = useUserStore((s) => s.setHobby);
+  const resetUser        = useUserStore((s) => s.reset);
 
   const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
-  const resetRoadmap = useRoadmapStore((s) => s.reset);
+  const resetRoadmap     = useRoadmapStore((s) => s.reset);
 
   const { roadmap, invalidate } = useRoadmap(hobbyId ?? '');
   const stages = roadmap?.stages ?? [];
+
   const completedTopics = hobbyId
     ? stages.filter((s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true).length
     : 0;
 
-  const nextTopicIndex = stages.findIndex((s) => !getTopicProgress(hobbyId ?? '', s.conceptId)?.completed);
+  // ── Video-level progress (updates every time a video is watched) ──
+  const totalVideosWatched = hobbyId
+    ? stages.reduce((sum, s) => {
+        const p = getTopicProgress(hobbyId, s.conceptId);
+        return sum + (p?.videosWatched ?? 0);
+      }, 0)
+    : 0;
+
+  const totalVideosExpected = hobbyId
+    ? stages.reduce((sum, s) => {
+        const p = getTopicProgress(hobbyId, s.conceptId);
+        // Use stored totalVideos if available, else fall back to default
+        return sum + (p?.totalVideos ?? DEFAULT_VIDEOS_PER_TOPIC);
+      }, 0)
+    : stages.length * DEFAULT_VIDEOS_PER_TOPIC;
+
+  const progressPct = totalVideosExpected > 0
+    ? Math.min(Math.round((totalVideosWatched / totalVideosExpected) * 100), 100)
+    : 0;
+
+  const nextTopicIndex = stages.findIndex(
+    (s) => !getTopicProgress(hobbyId ?? '', s.conceptId)?.completed,
+  );
   const nextTopic = nextTopicIndex >= 0 ? stages[nextTopicIndex] : null;
 
   const hobby = hobbyId ? getHobbyById(hobbyId) : null;
-  const [resetOpen, setResetOpen] = useState(false);
+
+  const [resetOpen, setResetOpen]       = useState(false);
   const [hobbySheetOpen, setHobbySheetOpen] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [generating, setGenerating]     = useState(false);
 
   const handleConfirmReset = useCallback(() => {
     resetRoadmap();
@@ -87,16 +112,30 @@ export function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── Greeting header ── */}
+        {/* ── Header ── */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.greetingBlock}>
             <Text style={styles.greeting}>HEY THERE 👋</Text>
-            <Text style={styles.subGreeting}>Let's level up your skills today.</Text>
+            <Text style={styles.subGreeting}>Level up your skills today</Text>
           </View>
+
+          {/* Neo-brutalist change-hobby button */}
+          <Pressable style={styles.changeBtn} onPress={() => setHobbySheetOpen(true)}>
+            {({ pressed }) => (
+              <>
+                <View style={styles.changeBtnShadow} />
+                <View style={[styles.changeBtnFace, pressed && styles.changeBtnFacePressed]}>
+                  <Text style={styles.changeBtnEmoji}>{hobby?.emoji ?? '🎯'}</Text>
+                  <View style={styles.changeBtnTextBlock}>
+                    <Text style={styles.changeBtnLabel}>SWITCH</Text>
+                    <Text style={styles.changeBtnSub}>HOBBY</Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </Pressable>
         </View>
 
         {/* ── Hero card ── */}
@@ -111,13 +150,18 @@ export function DashboardScreen() {
           accentColor={hobby?.accentColor}
           completedTopics={completedTopics}
           totalTopics={stages.length}
-          onChangeHobby={() => setHobbySheetOpen(true)}
+          progressPct={progressPct}
+          videosWatched={totalVideosWatched}
+          totalVideos={totalVideosExpected}
         />
 
-        {/* ── Section: Continue Learning ── */}
+        {/* ── Continue Learning ── */}
         {nextTopic && (
           <>
-            <Text style={styles.sectionTitle}>CONTINUE LEARNING</Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionDot} />
+              <Text style={styles.sectionTitle}>CONTINUE LEARNING</Text>
+            </View>
             <NextUpCard
               hobbyId={hobbyId}
               hobbyName={hobby?.name ?? hobbyId}
@@ -135,22 +179,28 @@ export function DashboardScreen() {
           </>
         )}
 
-        {/* ── Section: Stats ── */}
-        <Text style={styles.sectionTitle}>YOUR STATS</Text>
+        {/* ── Stats ── */}
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionDot, { backgroundColor: '#DCCCF7' }]} />
+          <Text style={styles.sectionTitle}>YOUR STATS</Text>
+        </View>
         <StatsGrid
           stats={[
-            { value: xp, label: 'Total XP', icon: STAT_ICONS[2], accent: STAT_ACCENTS[2] },
-            { value: streak > 0 ? streak : 0, label: 'Day Streak', icon: STAT_ICONS[3], accent: STAT_ACCENTS[3] },
-            { value: completedTopics, label: 'Topics Done', icon: STAT_ICONS[0], accent: STAT_ACCENTS[0] },
-            { value: Math.max(0, stages.length - completedTopics), label: 'Remaining', icon: STAT_ICONS[1], accent: STAT_ACCENTS[1] },
+            { value: xp,                                     label: 'Total XP',    icon: STAT_ICONS[0], accent: STAT_ACCENTS[0] },
+            { value: streak > 0 ? streak : 0,               label: 'Day Streak',  icon: STAT_ICONS[1], accent: STAT_ACCENTS[1] },
+            { value: completedTopics,                        label: 'Topics Done', icon: STAT_ICONS[2], accent: STAT_ACCENTS[2] },
+            { value: Math.max(0, stages.length - completedTopics), label: 'Remaining',   icon: STAT_ICONS[3], accent: STAT_ACCENTS[3] },
           ]}
         />
 
-        {/* ── Section: Weekly hustle ── */}
-        <Text style={styles.sectionTitle}>WEEKLY HUSTLE</Text>
+        {/* ── Weekly Hustle ── */}
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionDot, { backgroundColor: '#F4B183' }]} />
+          <Text style={styles.sectionTitle}>WEEKLY HUSTLE</Text>
+        </View>
         <WeeklyActivityChart />
 
-        {/* ── Reset button ── */}
+        {/* ── Reset ── */}
         <Pressable
           style={({ pressed }) => [styles.resetBtn, pressed && styles.resetBtnPressed]}
           onPress={() => setResetOpen(true)}>
@@ -158,7 +208,7 @@ export function DashboardScreen() {
         </Pressable>
       </ScrollView>
 
-      <FloatingAIButton hobbyId={hobbyId} context="dashboard" />
+      <FloatingAIButton hobbyId={hobbyId} context="dashboard" bottomOffset={120} />
 
       <ResetConfirmModal
         visible={resetOpen}
@@ -185,17 +235,20 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
     gap: spacing.md,
   },
+
+  // ── Header ──────────────────────────────────────────────────
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.xs,
+    alignItems: 'center',
   },
+  greetingBlock: { flex: 1 },
   greeting: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '900',
     color: colors.text,
     letterSpacing: -0.5,
+    lineHeight: 28,
   },
   subGreeting: {
     fontSize: 13,
@@ -203,14 +256,77 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
+
+  // ── Change hobby button ──────────────────────────────────────
+  changeBtn: {
+    position: 'relative',
+    marginLeft: spacing.sm,
+  },
+  changeBtnShadow: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    right: -4,
+    bottom: -4,
+    backgroundColor: colors.border,
+    borderRadius: radius.md,
+  },
+  changeBtnFace: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.yellow,
+    borderWidth: 2.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    zIndex: 1,
+  },
+  changeBtnFacePressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+  },
+  changeBtnEmoji: { fontSize: 18 },
+  changeBtnTextBlock: { alignItems: 'flex-start' },
+  changeBtnLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 1,
+    lineHeight: 13,
+  },
+  changeBtnSub: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+    lineHeight: 11,
+  },
+
+  // ── Section headers ──────────────────────────────────────────
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    marginBottom: -spacing.xxs,
+  },
+  sectionDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.yellow,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '900',
     color: colors.textMuted,
     letterSpacing: 2,
-    marginTop: spacing.xs,
-    marginBottom: -spacing.xs,
   },
+
+  // ── Reset ────────────────────────────────────────────────────
   resetBtn: {
     borderWidth: 2,
     borderColor: colors.danger,

@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     elevation: 0,
   },
 
-  // ── Abstract poster thumbnail ─────────────────────────────────
+  // ── Thumbnail (real or abstract fallback) ────────────────────
   thumbnail: {
     height: 160,
     backgroundColor: '#F0EAE0',
@@ -28,6 +28,9 @@ export const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     overflow: 'hidden',
     position: 'relative',
+  },
+  thumbnailImage: {
+    resizeMode: 'cover',
   },
 
   // Large yellow rotated block — bottom-left

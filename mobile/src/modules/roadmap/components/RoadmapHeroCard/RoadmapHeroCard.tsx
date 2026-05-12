@@ -10,6 +10,9 @@ interface Props {
   completedCount: number;
   totalCount: number;
   skillLevel?: string;
+  videosWatched?: number;
+  totalVideos?: number;
+  videoProgressPct?: number;
 }
 
 const SKILL_ACCENT: Record<string, string> = {
@@ -21,8 +24,11 @@ const SKILL_ACCENT: Record<string, string> = {
 export function RoadmapHeroCard({
   hobbyEmoji, hobbyName, level, xp,
   completedCount, totalCount, skillLevel = 'beginner',
+  videosWatched = 0, totalVideos = 0, videoProgressPct = 0,
 }: Props) {
-  const pct = totalCount > 0 ? Math.min(Math.round((completedCount / totalCount) * 100), 100) : 0;
+  // Use video-level pct (updates every video) if available, fall back to topic pct
+  const topicPct = totalCount > 0 ? Math.min(Math.round((completedCount / totalCount) * 100), 100) : 0;
+  const pct = totalVideos > 0 ? videoProgressPct : topicPct;
   const accent = SKILL_ACCENT[skillLevel] ?? '#BBF7D0';
   const remaining = Math.max(0, totalCount - completedCount);
 
@@ -76,17 +82,17 @@ export function RoadmapHeroCard({
       <View style={styles.statsRow}>
         <View style={styles.statBlock}>
           <Text style={styles.statVal}>{completedCount}</Text>
-          <Text style={styles.statLbl}>COMPLETED</Text>
+          <Text style={styles.statLbl}>TOPICS DONE</Text>
+        </View>
+        <View style={styles.statSep} />
+        <View style={styles.statBlock}>
+          <Text style={styles.statVal}>{videosWatched}</Text>
+          <Text style={styles.statLbl}>VIDEOS</Text>
         </View>
         <View style={styles.statSep} />
         <View style={styles.statBlock}>
           <Text style={styles.statVal}>{remaining}</Text>
           <Text style={styles.statLbl}>REMAINING</Text>
-        </View>
-        <View style={styles.statSep} />
-        <View style={styles.statBlock}>
-          <Text style={styles.statVal}>{totalCount}</Text>
-          <Text style={styles.statLbl}>TOTAL</Text>
         </View>
       </View>
 

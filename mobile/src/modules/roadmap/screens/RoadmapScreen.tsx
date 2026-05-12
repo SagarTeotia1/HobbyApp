@@ -40,13 +40,31 @@ export function RoadmapScreen() {
   const skillLevel = useUserStore((s) => s.skillLevel);
   const dailyTimeMinutes = useUserStore((s) => s.dailyTimeMinutes);
   const setPreferences = useUserStore((s) => s.setPreferences);
+  // Subscribe to progress data directly so component re-renders on every video watch
+  const hobbyProgress  = useRoadmapStore((s) => s.progress[hobbyId]);
   const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
 
   const { roadmap, loading, refetch, invalidate } = useRoadmap(hobbyId);
   const hobbyMeta = CURRICULUM.find((c) => c.id === hobbyId);
   const stages: RoadmapStage[] = roadmap?.stages ?? [];
-  const completedCount = stages.filter((s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true).length;
   const totalCount = stages.length;
+
+  // Topic-level count
+  const completedCount = stages.filter(
+    (s) => hobbyProgress?.topicsProgress[s.conceptId]?.completed === true,
+  ).length;
+
+  // Video-level progress (updates on every watched video)
+  const DEFAULT_VIDEOS_PER_TOPIC = 5;
+  const totalVideosWatched = stages.reduce((sum, s) => {
+    return sum + (hobbyProgress?.topicsProgress[s.conceptId]?.videosWatched ?? 0);
+  }, 0);
+  const totalVideosExpected = stages.reduce((sum, s) => {
+    return sum + (hobbyProgress?.topicsProgress[s.conceptId]?.totalVideos ?? DEFAULT_VIDEOS_PER_TOPIC);
+  }, 0) || (stages.length * DEFAULT_VIDEOS_PER_TOPIC);
+  const videoProgressPct = totalVideosExpected > 0
+    ? Math.min(Math.round((totalVideosWatched / totalVideosExpected) * 100), 100)
+    : 0;
   const nextSkillLevel = SKILL_PROGRESSION[skillLevel] ?? null;
 
   const [generating, setGenerating] = useState(false);
@@ -100,12 +118,22 @@ export function RoadmapScreen() {
         hobbyName={hobbyName}
         level={level}
         xp={xp}
+        skillLevel={skillLevel}
         completedCount={completedCount}
         totalCount={totalCount}
+        videosWatched={totalVideosWatched}
+        totalVideos={totalVideosExpected}
+        videoProgressPct={videoProgressPct}
       />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Your Learning Roadmap</Text>
+
+        {/* Section header */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionDot} />
+          <Text style={styles.sectionTitle}>YOUR STAGES</Text>
+          <View style={styles.sectionLine} />
+        </View>
 
         {levelUpVisible && (
           <LevelUpBanner
@@ -117,16 +145,23 @@ export function RoadmapScreen() {
           />
         )}
 
-        {loading && (
-          <View style={styles.center}>
+        {(loading || generating) && (
+          <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Building your AI roadmap…</Text>
+            <Text style={styles.loadingTitle}>
+              {generating ? 'LEVELLING UP…' : 'BUILDING ROADMAP…'}
+            </Text>
+            <Text style={styles.loadingText}>
+              {generating ? 'Generating your next-level path' : 'AI is crafting your personal path'}
+            </Text>
           </View>
         )}
 
-        {!loading && stages.length === 0 && (
-          <View style={styles.center}>
-            <Text style={styles.emptyText}>No roadmap yet. Complete onboarding to generate one.</Text>
+        {!loading && !generating && stages.length === 0 && (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>🗺️</Text>
+            <Text style={styles.emptyTitle}>NO ROADMAP YET</Text>
+            <Text style={styles.emptyText}>Complete onboarding to generate your personalised path.</Text>
           </View>
         )}
 
@@ -166,16 +201,92 @@ export function RoadmapScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 0 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.textMuted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+
+  // Section header
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  center: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
-  loadingText: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
-  emptyText: { fontSize: 14, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
+  sectionDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.yellow,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: colors.textMuted,
+    letterSpacing: 2,
+  },
+  sectionLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: colors.borderLight,
+    borderRadius: 1,
+  },
+
+  // Loading card
+  loadingCard: {
+    borderWidth: 3,
+    borderColor: colors.border,
+    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 5, height: 5 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 5,
+    marginBottom: spacing.md,
+  },
+  loadingTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 2,
+  },
+  loadingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+
+  // Empty card
+  emptyCard: {
+    borderWidth: 3,
+    borderColor: colors.borderLight,
+    borderRadius: 20,
+    borderStyle: 'dashed',
+    backgroundColor: colors.surface,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  emptyEmoji: { fontSize: 40 },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textMuted,
+    letterSpacing: 2,
+  },
+  emptyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textDim,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });

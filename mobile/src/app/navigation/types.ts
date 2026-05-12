@@ -27,7 +27,7 @@ export type MainTabParamList = {
 export type AppStackParamList = {
   [ROUTES.MAIN_TABS]: NavigatorScreenParams<MainTabParamList> | undefined;
   [ROUTES.FEED]:         { hobbyId: string; topicId: string; topicName: string; stageIndex: number; accumulatedVideos?: number };
-  [ROUTES.PROGRESS]:     { hobbyId: string; videosWatched: number; xpEarned: number };
+  [ROUTES.PROGRESS]:     { hobbyId: string; topicId: string; topicName: string; stageIndex: number; accumulatedVideos: number; videosWatched: number; xpEarned: number };
   [ROUTES.TOPIC_DETAIL]: TopicScreenParams;
   [ROUTES.LEARN_GRAPH]:  TopicScreenParams;
   [ROUTES.COMIC]:        TopicScreenParams;

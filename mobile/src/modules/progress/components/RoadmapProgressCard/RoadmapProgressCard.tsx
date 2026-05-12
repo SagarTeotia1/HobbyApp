@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
+import { colors, spacing } from '../../../../app/theme';
 
 interface Props {
   completedTopics: number;
@@ -14,25 +14,39 @@ export function RoadmapProgressCard({ completedTopics, totalTopics, xp, level }:
 
   return (
     <View style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.label}>Roadmap Progress</Text>
-        <Text style={styles.count}>{completedTopics} / {totalTopics} topics</Text>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <View style={styles.dot} />
+          <Text style={styles.title}>ROADMAP</Text>
+        </View>
+        <Text style={styles.count}>{completedTopics}/{totalTopics}</Text>
       </View>
-      <View style={styles.barOuter}>
-        <View style={[styles.barInner, { width: `${pct}%` }]} />
+
+      <View style={styles.barTrack}>
+        <View style={[styles.barFill, { width: `${pct}%` }]} />
+        {pct > 0 && (
+          <View style={[styles.barLabel, { left: `${Math.min(pct, 88)}%` }]}>
+            <Text style={styles.barLabelText}>{pct}%</Text>
+          </View>
+        )}
       </View>
-      <Text style={styles.hint}>{pct}% complete · Lv {level} · {xp} XP</Text>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Lv {level}</Text>
+        <Text style={styles.footerSep}>·</Text>
+        <Text style={styles.footerText}>{xp} XP total</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
-    padding: spacing.lg,
+    borderRadius: 8,
+    backgroundColor: colors.bgElevated,
+    padding: spacing.md,
     shadowColor: colors.shadow,
     shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
@@ -40,10 +54,33 @@ const styles = StyleSheet.create({
     elevation: 4,
     gap: spacing.sm,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  label: { fontSize: 13, fontWeight: '900', color: colors.textInverse },
-  count: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.6)' },
-  barOuter: { height: 10, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: radius.pill, overflow: 'hidden' },
-  barInner: { height: '100%', backgroundColor: colors.yellow, borderRadius: radius.pill },
-  hint: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.6)' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 2, backgroundColor: colors.primary },
+  title: { fontSize: 12, fontWeight: '900', color: colors.text, letterSpacing: 1.5 },
+  count: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
+  barTrack: {
+    height: 12,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    overflow: 'visible',
+    position: 'relative',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 3,
+  },
+  barLabel: {
+    position: 'absolute',
+    top: -18,
+    backgroundColor: colors.text,
+    borderRadius: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  barLabelText: { fontSize: 8, fontWeight: '900', color: colors.bg },
+  footer: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  footerText: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
+  footerSep: { fontSize: 11, color: colors.borderLight },
 });

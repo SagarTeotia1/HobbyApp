@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
+import { colors, spacing } from '../../../../app/theme';
 
 interface Props {
   isLast: boolean;
@@ -23,7 +23,7 @@ export function FeedBottomBar({ isLast, paddingBottom, onBreak, onContinue }: Pr
         style={({ pressed }) => [styles.continueWrap, pressed && styles.continueWrapPressed]}
         onPress={onContinue}>
         <View style={styles.continueShadow} />
-        <View style={[styles.continueFace]}>
+        <View style={styles.continueFace}>
           <Text style={styles.continueBtnText}>
             {isLast ? 'NEXT TOPIC' : 'NEXT VIDEO'}
           </Text>
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     backgroundColor: colors.bg,
     borderTopWidth: 3,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     gap: 2,
     borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: 6,
     backgroundColor: colors.bgElevated,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     right: -4,
     bottom: -4,
     backgroundColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: 6,
   },
   continueFace: {
     flexDirection: 'row',
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: 6,
     paddingVertical: spacing.md,
     zIndex: 1,
   },

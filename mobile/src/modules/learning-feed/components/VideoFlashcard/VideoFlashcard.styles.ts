@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
+import { colors, spacing } from '../../../../app/theme';
 
 export const styles = StyleSheet.create({
   root: {
@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bgElevated,
     borderWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.xl,
+    borderRadius: 8,
     padding: spacing.lg,
     gap: spacing.xs,
     shadowColor: colors.shadow,
@@ -26,14 +26,15 @@ export const styles = StyleSheet.create({
   },
   titleCardDec: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 4,
     backgroundColor: colors.primaryLight,
     borderWidth: 2,
     borderColor: colors.borderLight,
-    top: -30,
-    right: -24,
+    top: -20,
+    right: -16,
+    transform: [{ rotate: '12deg' }],
   },
   nowPlaying: {
     fontSize: 8,
@@ -58,9 +59,9 @@ export const styles = StyleSheet.create({
     zIndex: 1,
   },
   creatorDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2,
     backgroundColor: colors.primary,
   },
   creator: {
@@ -73,7 +74,7 @@ export const styles = StyleSheet.create({
   insightCard: {
     borderWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.xl,
+    borderRadius: 8,
     backgroundColor: colors.primary,
     padding: spacing.lg,
     shadowColor: colors.shadow,
@@ -87,23 +88,24 @@ export const styles = StyleSheet.create({
   },
   insightDecCircle: {
     position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.08)',
-    top: -30,
-    right: -20,
+    borderColor: 'rgba(255,255,255,0.07)',
+    top: -24,
+    right: -16,
+    transform: [{ rotate: '8deg' }],
   },
   insightDecRect: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 4,
     backgroundColor: 'rgba(255,214,0,0.08)',
-    bottom: -16,
-    left: 32,
+    bottom: -12,
+    left: 28,
     transform: [{ rotate: '20deg' }],
   },
   insightHeader: {
@@ -113,9 +115,9 @@ export const styles = StyleSheet.create({
     zIndex: 1,
   },
   insightIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 4,
     backgroundColor: colors.yellow,
     borderWidth: 2,
     borderColor: colors.border,
@@ -126,7 +128,7 @@ export const styles = StyleSheet.create({
   insightLabel: {
     fontSize: 10,
     fontWeight: '900',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.55)',
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
@@ -151,7 +153,7 @@ export const styles = StyleSheet.create({
     gap: spacing.xs,
     borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: 6,
     backgroundColor: colors.bgElevated,
     paddingVertical: spacing.sm,
     shadowColor: colors.shadow,

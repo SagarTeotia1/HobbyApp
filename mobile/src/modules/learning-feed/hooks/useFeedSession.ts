@@ -14,6 +14,8 @@ const XP_POPUP_CLEAR_MS = 1000;
 interface FeedSessionParams {
   hobbyId: string;
   topicId: string;
+  topicName: string;
+  stageIndex: number;
   accumulatedVideos: number;
   videos: FeedVideo[];
   roadmapStages: RoadmapStage[];
@@ -22,6 +24,8 @@ interface FeedSessionParams {
 export function useFeedSession({
   hobbyId,
   topicId,
+  topicName,
+  stageIndex,
   accumulatedVideos,
   videos,
   roadmapStages,
@@ -77,10 +81,14 @@ export function useFeedSession({
     const totalWatched = accumulatedVideos + watchedSet.current.size;
     navigation.replace(ROUTES.PROGRESS, {
       hobbyId,
+      topicId,
+      topicName,
+      stageIndex,
+      accumulatedVideos: totalWatched,
       videosWatched: totalWatched,
       xpEarned: totalWatched * XP_PER_VIDEO,
     });
-  }, [awardXP, currentIndex, navigation, hobbyId, accumulatedVideos]);
+  }, [awardXP, currentIndex, navigation, hobbyId, topicId, topicName, stageIndex, accumulatedVideos]);
 
   return {
     currentIndex,

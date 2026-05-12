@@ -26,7 +26,7 @@ type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<AppStackParamList>
 >;
 
-const DEFAULT_VIDEOS_PER_TOPIC = 5;
+const DEFAULT_VIDEOS_PER_TOPIC = 3;
 const STAT_ACCENTS = ['#DCCCF7', '#F3B0A8', '#CFE1B9', '#FFF2CC'];
 const STAT_ICONS   = ['⭐', '🔥', '✓', '📋'];
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
+import { colors, spacing } from '../../../../app/theme';
 
 interface Props {
   videosWatched: number;
@@ -8,19 +8,22 @@ interface Props {
   level: number;
 }
 
+const STAT_COLORS = [colors.primary, '#B7D7F2', '#CFE1B9'];
+const STAT_TEXT = ['rgba(255,255,255,0.9)', colors.text, colors.text];
+
 export function SessionStatsRow({ videosWatched, streak, level }: Props) {
   const stats = [
-    { value: String(videosWatched), label: 'Videos' },
-    { value: streak > 0 ? `🔥 ${streak}` : '—', label: 'Day Streak' },
-    { value: `Lv ${level}`, label: 'Level' },
+    { value: String(videosWatched), label: 'VIDEOS' },
+    { value: streak > 0 ? `${streak}🔥` : '0', label: 'STREAK' },
+    { value: `${level}`, label: 'LEVEL' },
   ];
 
   return (
     <View style={styles.row}>
-      {stats.map((s) => (
-        <View key={s.label} style={styles.card}>
-          <Text style={styles.value}>{s.value}</Text>
-          <Text style={styles.label}>{s.label}</Text>
+      {stats.map((s, i) => (
+        <View key={s.label} style={[styles.card, { backgroundColor: STAT_COLORS[i] }]}>
+          <Text style={[styles.value, { color: STAT_TEXT[i] }]}>{s.value}</Text>
+          <Text style={[styles.label, { color: i === 0 ? 'rgba(255,255,255,0.6)' : colors.textMuted }]}>{s.label}</Text>
         </View>
       ))}
     </View>
@@ -31,10 +34,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: spacing.sm },
   card: {
     flex: 1,
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.bgElevated,
+    borderRadius: 8,
     paddingVertical: spacing.md,
     alignItems: 'center',
     shadowColor: colors.shadow,
@@ -44,6 +46,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     gap: 4,
   },
-  value: { fontSize: 20, fontWeight: '900', color: colors.text },
-  label: { fontSize: 10, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' },
+  value: { fontSize: 22, fontWeight: '900' },
+  label: { fontSize: 9, fontWeight: '900', letterSpacing: 1.5 },
 });

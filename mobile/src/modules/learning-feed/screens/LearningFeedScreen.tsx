@@ -13,7 +13,6 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VideoPlayer } from '../components/VideoPlayer/VideoPlayer';
 import { VideoFlashcard } from '../components/VideoFlashcard/VideoFlashcard';
-import { FeedXPBar } from '../components/FeedXPBar/FeedXPBar';
 import { FeedHeader } from '../components/FeedHeader/FeedHeader';
 import { FeedProgressStrip } from '../components/FeedProgressStrip/FeedProgressStrip';
 import { FeedBottomBar } from '../components/FeedBottomBar/FeedBottomBar';
@@ -21,7 +20,6 @@ import { ComicTeaser } from '../components/ComicTeaser/ComicTeaser';
 import { VideoListSheet } from '../components/VideoListSheet/VideoListSheet';
 import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton/FloatingAIButton';
 import { useUserStore } from '../../../app/store/rootStore';
-import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
 import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { useFeedVideos } from '../hooks/useFeedVideos';
 import { useFeedSession } from '../hooks/useFeedSession';
@@ -43,16 +41,10 @@ export function LearningFeedScreen() {
   const insets = useSafeAreaInsets();
   const { hobbyId, topicId, topicName, stageIndex, accumulatedVideos = 0 } = route.params;
 
-  const streak = useUserStore((s) => s.streak);
   const skillLevel = useUserStore((s) => s.skillLevel);
-  const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
 
   const { roadmap } = useRoadmap(hobbyId);
   const roadmapStages = roadmap?.stages ?? [];
-  const completedTopics = roadmapStages.filter(
-    (s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true,
-  ).length;
-  const totalTopics = roadmapStages.length;
 
   const hobbyMeta = CURRICULUM.find((c) => c.id === hobbyId);
   const hobbyName = hobbyMeta?.name ?? hobbyId;
@@ -71,7 +63,6 @@ export function LearningFeedScreen() {
   const {
     currentIndex,
     setCurrentIndex,
-    xpDelta,
     sheetOpen,
     setSheetOpen,
     isLast,
@@ -79,7 +70,7 @@ export function LearningFeedScreen() {
     handleContinue,
     handleBreak,
     goNextTopic,
-  } = useFeedSession({ hobbyId, topicId, accumulatedVideos, videos, roadmapStages });
+  } = useFeedSession({ hobbyId, topicId, topicName, stageIndex, accumulatedVideos, videos, roadmapStages });
 
   const currentVideo = videos[currentIndex];
   const bottomBarHeight = BOTTOM_BAR_HEIGHT + insets.bottom;
@@ -135,13 +126,6 @@ export function LearningFeedScreen() {
           setSheetWatchedIndices(new Set(watchedSet.current));
           setSheetOpen(true);
         }}
-      />
-
-      <FeedXPBar
-        xpDelta={xpDelta}
-        streak={streak}
-        completedTopics={completedTopics}
-        totalTopics={totalTopics}
       />
 
       {/* Cream zone: flashcard content */}

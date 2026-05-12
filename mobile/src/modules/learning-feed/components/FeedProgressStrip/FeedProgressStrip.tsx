@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
+import { colors, spacing } from '../../../../app/theme';
 
 interface Props {
   total: number;
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   segment: {
     flex: 1,
     height: 5,
-    borderRadius: 3,
+    borderRadius: 2,
     backgroundColor: colors.borderLight,
   },
   segmentDone: {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgElevated,
     borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: 6,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     shadowColor: colors.shadow,

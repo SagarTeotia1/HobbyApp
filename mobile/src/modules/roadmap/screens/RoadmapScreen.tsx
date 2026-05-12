@@ -58,7 +58,7 @@ export function RoadmapScreen() {
   ).length;
 
   // Video-level progress (updates on every watched video)
-  const DEFAULT_VIDEOS_PER_TOPIC = 5;
+  const DEFAULT_VIDEOS_PER_TOPIC = 3;
   const totalVideosWatched = stages.reduce((sum, s) => {
     return sum + (hobbyProgress?.topicsProgress[s.conceptId]?.videosWatched ?? 0);
   }, 0);

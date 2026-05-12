@@ -12,7 +12,7 @@ import { cacheKeys, cacheTTL } from '../../shared/constants/cacheKeys';
 import type { YouTubeVideosQueryInput } from './youtube.validator';
 import type { YouTubeVideo, YouTubeVideosResponse } from './youtube.types';
 
-const MAX_VIDEOS = 5;
+const MAX_VIDEOS = 3;
 // Fetch more candidates so we have enough after filtering non-embeddable ones
 const YT_FETCH_COUNT = 15;
 

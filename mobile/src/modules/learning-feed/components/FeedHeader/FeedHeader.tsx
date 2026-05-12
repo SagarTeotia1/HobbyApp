@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: radius.md,
+    borderRadius: 6,
     backgroundColor: colors.bgElevated,
     borderWidth: 2,
     borderColor: colors.border,

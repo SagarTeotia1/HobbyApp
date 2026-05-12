@@ -5,6 +5,8 @@ import { colors, spacing, radius } from '../../../../app/theme';
 interface StatItem {
   value: string | number;
   label: string;
+  icon: string;
+  accent: string;
 }
 
 interface Props {
@@ -15,7 +17,8 @@ export function StatsGrid({ stats }: Props) {
   return (
     <View style={styles.grid}>
       {stats.map((s) => (
-        <View key={s.label} style={styles.card}>
+        <View key={s.label} style={[styles.card, { backgroundColor: s.accent }]}>
+          <Text style={styles.icon}>{s.icon}</Text>
           <Text style={styles.value}>{s.value}</Text>
           <Text style={styles.label}>{s.label}</Text>
         </View>
@@ -25,22 +28,39 @@ export function StatsGrid({ stats }: Props) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
   card: {
     flex: 1,
     minWidth: '45%',
     borderWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgElevated,
-    padding: spacing.md,
-    alignItems: 'center',
+    borderRadius: radius.xl,
+    padding: spacing.lg,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 4, height: 4 },
+    shadowOffset: { width: 5, height: 5 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 3,
+    elevation: 5,
+    gap: spacing.xxs,
   },
-  value: { fontSize: 26, fontWeight: '900', color: colors.text },
-  label: { fontSize: 11, fontWeight: '800', color: colors.textMuted, marginTop: 4, letterSpacing: 1, textTransform: 'uppercase' },
+  icon: {
+    fontSize: 20,
+  },
+  value: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: -1,
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
 });

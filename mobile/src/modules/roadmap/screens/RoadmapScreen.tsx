@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../store/roadmap.store';
@@ -11,12 +13,11 @@ import { RoadmapNode } from '../components/RoadmapNode/RoadmapNode';
 import { RoadmapHeroCard } from '../components/RoadmapHeroCard/RoadmapHeroCard';
 import { LevelUpBanner } from '../components/LevelUpBanner/LevelUpBanner';
 import { TopicActionSheet } from '../components/TopicActionSheet';
-import { ChangeHobbySheet } from '../../../shared/components/ChangeHobbySheet';
 import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton/FloatingAIButton';
 import { CURRICULUM, getTopicById } from '../../../shared/constants/curriculum';
 import { colors, spacing } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
-import type { AppStackParamList } from '../../../app/navigation/types';
+import type { AppStackParamList, MainTabParamList } from '../../../app/navigation/types';
 import type { RoadmapStage } from '../types/roadmap.types';
 import type { DifficultyLevel } from '../../../shared/types/card.types';
 
@@ -26,7 +27,10 @@ const SKILL_PROGRESSION: Record<DifficultyLevel, DifficultyLevel | null> = {
   advanced: null,
 };
 
-type Nav = NativeStackNavigationProp<AppStackParamList, typeof ROUTES.ROADMAP>;
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, typeof ROUTES.ROADMAP>,
+  NativeStackNavigationProp<AppStackParamList>
+>;
 
 export function RoadmapScreen() {
   const navigation = useNavigation<Nav>();
@@ -35,7 +39,6 @@ export function RoadmapScreen() {
   const level = useUserStore((s) => s.level);
   const skillLevel = useUserStore((s) => s.skillLevel);
   const dailyTimeMinutes = useUserStore((s) => s.dailyTimeMinutes);
-  const setHobby = useUserStore((s) => s.setHobby);
   const setPreferences = useUserStore((s) => s.setPreferences);
   const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
 
@@ -46,7 +49,6 @@ export function RoadmapScreen() {
   const totalCount = stages.length;
   const nextSkillLevel = SKILL_PROGRESSION[skillLevel] ?? null;
 
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [actionSheet, setActionSheet] = useState<{ topicId: string; topicName: string } | null>(null);
   const [levelUpVisible, setLevelUpVisible] = useState(false);
@@ -85,25 +87,6 @@ export function RoadmapScreen() {
     }
   }, [nextSkillLevel, hobbyId, dailyTimeMinutes, setPreferences, invalidate, refetch]);
 
-  const handleChangeHobby = useCallback(
-    async (newHobbyId: string) => {
-      if (newHobbyId === hobbyId) { setPickerOpen(false); return; }
-      setGenerating(true);
-      invalidate();
-      try {
-        const data = await roadmapService.generateRoadmap(newHobbyId, skillLevel, dailyTimeMinutes);
-        setHobby(data.hobbyId ?? newHobbyId);
-      } catch (e) {
-        console.warn('[RoadmapScreen] Change hobby generation failed:', e);
-        setHobby(newHobbyId);
-      } finally {
-        setGenerating(false);
-        setPickerOpen(false);
-      }
-    },
-    [hobbyId, skillLevel, dailyTimeMinutes, setHobby, invalidate],
-  );
-
   const isTopicLocked = (stage: RoadmapStage, index: number): boolean => {
     if (index === 0 || stage.isUnlocked) return false;
     const prev = getTopicProgress(hobbyId, stages[index - 1]?.conceptId ?? '');
@@ -111,7 +94,7 @@ export function RoadmapScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       <RoadmapHeroCard
         hobbyEmoji={hobbyMeta?.emoji ?? '🎯'}
         hobbyName={hobbyName}
@@ -119,8 +102,6 @@ export function RoadmapScreen() {
         xp={xp}
         completedCount={completedCount}
         totalCount={totalCount}
-        onStats={() => navigation.navigate(ROUTES.DASHBOARD)}
-        onChangeHobby={() => setPickerOpen(true)}
       />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -166,7 +147,7 @@ export function RoadmapScreen() {
           />
         ))}
 
-        <View style={styles.bottomSpacer} />
+        <View style={{ height: spacing.xxl }} />
       </ScrollView>
 
       <FloatingAIButton hobbyId={hobbyId} context="roadmap" />
@@ -178,14 +159,6 @@ export function RoadmapScreen() {
         onGraph={() => actionSheet && navigateTo(ROUTES.LEARN_GRAPH, actionSheet.topicId, actionSheet.topicName)}
         onClose={() => setActionSheet(null)}
       />
-
-      <ChangeHobbySheet
-        visible={pickerOpen}
-        currentHobbyId={hobbyId}
-        generating={generating}
-        onSelect={handleChangeHobby}
-        onClose={() => setPickerOpen(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -193,7 +166,7 @@ export function RoadmapScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 0 },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '800',
@@ -205,5 +178,4 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
   loadingText: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
   emptyText: { fontSize: 14, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
-  bottomSpacer: { height: 120 },
 });

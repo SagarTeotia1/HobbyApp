@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '../../../../app/theme';
 
 interface Props {
@@ -9,8 +9,6 @@ interface Props {
   xp: number;
   completedCount: number;
   totalCount: number;
-  onStats: () => void;
-  onChangeHobby: () => void;
 }
 
 export function RoadmapHeroCard({
@@ -20,8 +18,6 @@ export function RoadmapHeroCard({
   xp,
   completedCount,
   totalCount,
-  onStats,
-  onChangeHobby,
 }: Props) {
   const progressPct = totalCount > 0 ? Math.min((completedCount / totalCount) * 100, 100) : 0;
 
@@ -32,31 +28,22 @@ export function RoadmapHeroCard({
           <Text style={styles.emoji}>{hobbyEmoji}</Text>
         </View>
         <View style={styles.meta}>
-          <Text style={styles.name} numberOfLines={1}>{hobbyName}</Text>
+          <Text style={styles.name} numberOfLines={1}>{hobbyName.toUpperCase()}</Text>
           <Text style={styles.level}>Lv {level} · {xp} XP</Text>
         </View>
-        <Pressable
-          style={({ pressed }) => [styles.statsBtn, pressed && styles.statsBtnPressed]}
-          onPress={onStats}>
-          <Text style={styles.statsBtnIcon}>📊</Text>
-          <Text style={styles.statsBtnLabel}>Stats</Text>
-        </Pressable>
+        <View style={styles.completionBadge}>
+          <Text style={styles.completionText}>{Math.round(progressPct)}%</Text>
+          <Text style={styles.completionLabel}>DONE</Text>
+        </View>
       </View>
-
-      <Pressable
-        style={({ pressed }) => [styles.changeBtn, pressed && styles.changeBtnPressed]}
-        onPress={onChangeHobby}>
-        <Text style={styles.changeBtnText}>🔄  Change Hobby</Text>
-        <Text style={styles.changeBtnArrow}>›</Text>
-      </Pressable>
 
       <View style={styles.progress}>
         <View style={styles.progressMeta}>
-          <Text style={styles.progressLabel}>{completedCount}/{totalCount} topics</Text>
-          <Text style={styles.progressPct}>{Math.round(progressPct)}%</Text>
+          <Text style={styles.progressLabel}>{completedCount}/{totalCount} TOPICS</Text>
+          <Text style={styles.progressPct}>ROADMAP PROGRESS</Text>
         </View>
         <View style={styles.barOuter}>
-          <View style={[styles.barInner, { width: `${progressPct}%` }]} />
+          <View style={[styles.barInner, { width: `${progressPct}%` as `${number}%` }]} />
         </View>
       </View>
     </View>
@@ -68,79 +55,56 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     backgroundColor: colors.primary,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
+    borderRadius: radius.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 4, height: 4 },
+    shadowOffset: { width: 5, height: 5 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 4,
+    elevation: 5,
     gap: spacing.sm,
   },
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   emojiWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.sm,
+    width: 46,
+    height: 46,
+    borderRadius: radius.md,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   emoji: { fontSize: 24 },
   meta: { flex: 1 },
-  name: { fontSize: 17, fontWeight: '900', color: colors.textInverse, letterSpacing: -0.3 },
-  level: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.65)', marginTop: 1 },
-  statsBtn: {
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.5)',
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    minWidth: 52,
-  },
-  statsBtnPressed: {
-    transform: [{ translateX: 2 }, { translateY: 2 }],
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
-  statsBtnIcon: { fontSize: 14 },
-  statsBtnLabel: { fontSize: 9, fontWeight: '800', color: 'rgba(255,255,255,0.9)', marginTop: 1, letterSpacing: 0.3 },
-  changeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  name: { fontSize: 18, fontWeight: '900', color: colors.textInverse, letterSpacing: -0.3 },
+  level: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.6)', marginTop: 1 },
+  completionBadge: {
     backgroundColor: colors.yellow,
     borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 3,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    alignItems: 'center',
   },
-  changeBtnPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  changeBtnText: { fontSize: 13, fontWeight: '900', color: colors.text },
-  changeBtnArrow: { fontSize: 18, fontWeight: '900', color: colors.text },
-  progress: { gap: 5 },
+  completionText: { fontSize: 16, fontWeight: '900', color: colors.text, lineHeight: 20 },
+  completionLabel: { fontSize: 8, fontWeight: '900', color: colors.text, letterSpacing: 1 },
+  progress: { gap: spacing.xs },
   progressMeta: { flexDirection: 'row', justifyContent: 'space-between' },
-  progressLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.6)', letterSpacing: 0.8, textTransform: 'uppercase' },
-  progressPct: { fontSize: 10, fontWeight: '900', color: 'rgba(255,255,255,0.9)' },
-  barOuter: { height: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: radius.pill, overflow: 'hidden' },
+  progressLabel: { fontSize: 10, fontWeight: '900', color: 'rgba(255,255,255,0.65)', letterSpacing: 0.8 },
+  progressPct: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.5)', letterSpacing: 1 },
+  barOuter: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
   barInner: { height: '100%', backgroundColor: colors.yellow, borderRadius: radius.pill },
 });

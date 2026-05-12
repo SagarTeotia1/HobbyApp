@@ -9,14 +9,17 @@ export const ROUTES = {
   ONBOARDING_LEVEL: 'Onboarding.Level',
   ONBOARDING_PLAN_GENERATION: 'Onboarding.PlanGeneration',
 
-  // App stack (no tabs)
-  ROADMAP:      'App.Roadmap',
+  // App stack
+  MAIN_TABS:    'App.MainTabs',
   FEED:         'App.Feed',
   PROGRESS:     'App.Progress',
-  DASHBOARD:    'App.Dashboard',
   TOPIC_DETAIL: 'App.TopicDetail',
   LEARN_GRAPH:  'App.LearnGraph',
   COMIC:        'App.Comic',
+
+  // Main tabs (nested inside MAIN_TABS)
+  DASHBOARD:    'App.Dashboard',
+  ROADMAP:      'App.Roadmap',
 } as const;
 
 export type RouteName = (typeof ROUTES)[keyof typeof ROUTES];

@@ -19,14 +19,21 @@ export type TopicScreenParams = {
   hobbyName: string;
 };
 
+export type MainTabParamList = {
+  [ROUTES.DASHBOARD]: undefined;
+  [ROUTES.ROADMAP]: undefined;
+};
+
 export type AppStackParamList = {
-  [ROUTES.ROADMAP]:      undefined;
+  [ROUTES.MAIN_TABS]: NavigatorScreenParams<MainTabParamList> | undefined;
   [ROUTES.FEED]:         { hobbyId: string; topicId: string; topicName: string; stageIndex: number; accumulatedVideos?: number };
   [ROUTES.PROGRESS]:     { hobbyId: string; videosWatched: number; xpEarned: number };
-  [ROUTES.DASHBOARD]:    undefined;
   [ROUTES.TOPIC_DETAIL]: TopicScreenParams;
   [ROUTES.LEARN_GRAPH]:  TopicScreenParams;
   [ROUTES.COMIC]:        TopicScreenParams;
+  // kept for type-compat with screens that navigate directly to tabs by name
+  [ROUTES.DASHBOARD]:    undefined;
+  [ROUTES.ROADMAP]:      undefined;
 };
 
 export type RootStackParamList = {

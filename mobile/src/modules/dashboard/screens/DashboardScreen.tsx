@@ -7,11 +7,15 @@ import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton
 import { DashboardHeroCard } from '../components/DashboardHeroCard/DashboardHeroCard';
 import { StatsGrid } from '../components/StatsGrid/StatsGrid';
 import { RoadmapProgressCard } from '../components/RoadmapProgressCard/RoadmapProgressCard';
+import { NextUpCard } from '../components/NextUpCard/NextUpCard';
+import { WeeklyActivityChart } from '../components/WeeklyActivityChart/WeeklyActivityChart';
 import { ResetConfirmModal } from '../components/ResetConfirmModal/ResetConfirmModal';
+import { ChangeHobbySheet } from '../../../shared/components/ChangeHobbySheet';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../../roadmap/store/roadmap.store';
 import { useRoadmap } from '../../roadmap/hooks/useRoadmap';
 import { getHobbyById } from '../../../shared/constants/curriculum';
+import { roadmapService } from '../../roadmap/services/roadmap.service';
 import { colors, spacing, radius } from '../../../app/theme';
 import type { AppStackParamList } from '../../../app/navigation/types';
 import { ROUTES } from '../../../app/navigation/routes';
@@ -26,17 +30,26 @@ export function DashboardScreen() {
   const level = useUserStore((s) => s.level);
   const streak = useUserStore((s) => s.streak);
   const skillLevel = useUserStore((s) => s.skillLevel);
+  const dailyTimeMinutes = useUserStore((s) => s.dailyTimeMinutes);
+  const setHobby = useUserStore((s) => s.setHobby);
   const resetUser = useUserStore((s) => s.reset);
+  
   const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
   const resetRoadmap = useRoadmapStore((s) => s.reset);
 
-  const { roadmap } = useRoadmap(hobbyId ?? '');
+  const { roadmap, invalidate } = useRoadmap(hobbyId ?? '');
   const stages = roadmap?.stages ?? [];
   const completedTopics = hobbyId
     ? stages.filter((s) => getTopicProgress(hobbyId, s.conceptId)?.completed === true).length
     : 0;
+  
+  const nextTopicIndex = stages.findIndex((s) => !getTopicProgress(hobbyId ?? '', s.conceptId)?.completed);
+  const nextTopic = nextTopicIndex >= 0 ? stages[nextTopicIndex] : null;
+
   const hobby = hobbyId ? getHobbyById(hobbyId) : null;
   const [resetOpen, setResetOpen] = useState(false);
+  const [hobbySheetOpen, setHobbySheetOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const handleConfirmReset = useCallback(() => {
     resetRoadmap();
@@ -44,18 +57,32 @@ export function DashboardScreen() {
     setResetOpen(false);
   }, [resetRoadmap, resetUser]);
 
+  const handleChangeHobby = useCallback(
+    async (newHobbyId: string) => {
+      if (newHobbyId === hobbyId) { setHobbySheetOpen(false); return; }
+      setGenerating(true);
+      invalidate();
+      try {
+        const data = await roadmapService.generateRoadmap(newHobbyId, skillLevel, dailyTimeMinutes);
+        setHobby(data.hobbyId ?? newHobbyId);
+      } catch (e) {
+        console.warn('[DashboardScreen] Change hobby failed:', e);
+        setHobby(newHobbyId);
+      } finally {
+        setGenerating(false);
+        setHobbySheetOpen(false);
+      }
+    },
+    [hobbyId, skillLevel, dailyTimeMinutes, setHobby, invalidate],
+  );
+
   if (!hobbyId) return null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable
-            style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
-            onPress={() => navigation.navigate(ROUTES.ROADMAP)}>
-            <Text style={styles.backBtnText}>← Roadmap</Text>
-          </Pressable>
-          <Text style={styles.screenTitle}>Stats</Text>
+          <Text style={styles.screenTitle}>DASHBOARD</Text>
         </View>
 
         <DashboardHeroCard
@@ -65,7 +92,27 @@ export function DashboardScreen() {
           level={level}
           skillLevel={skillLevel}
           accentColor={hobby?.accentColor}
+          onChangeHobby={() => setHobbySheetOpen(true)}
         />
+
+        <Pressable
+          style={({ pressed }) => [styles.roadmapBtn, pressed && styles.roadmapBtnPressed]}
+          onPress={() => navigation.navigate(ROUTES.ROADMAP)}>
+          <Text style={styles.roadmapBtnText}>VIEW FULL ROADMAP</Text>
+        </Pressable>
+
+        {nextTopic && (
+          <NextUpCard 
+            topicName={nextTopic.title} 
+            topicIndex={nextTopicIndex} 
+            onPress={() => navigation.navigate(ROUTES.FEED, { 
+              hobbyId, 
+              topicId: nextTopic.conceptId, 
+              topicName: nextTopic.title, 
+              stageIndex: nextTopicIndex 
+            })} 
+          />
+        )}
 
         <StatsGrid
           stats={[
@@ -76,6 +123,8 @@ export function DashboardScreen() {
           ]}
         />
 
+        <WeeklyActivityChart />
+
         <RoadmapProgressCard
           completedTopics={completedTopics}
           totalTopics={stages.length}
@@ -84,7 +133,7 @@ export function DashboardScreen() {
         <Pressable
           style={({ pressed }) => [styles.resetBtn, pressed && styles.resetBtnPressed]}
           onPress={() => setResetOpen(true)}>
-          <Text style={styles.resetBtnText}>Reset Profile</Text>
+          <Text style={styles.resetBtnText}>RESET PROFILE</Text>
         </Pressable>
       </ScrollView>
 
@@ -95,6 +144,14 @@ export function DashboardScreen() {
         onCancel={() => setResetOpen(false)}
         onConfirm={handleConfirmReset}
       />
+
+      <ChangeHobbySheet
+        visible={hobbySheetOpen}
+        currentHobbyId={hobbyId}
+        generating={generating}
+        onSelect={handleChangeHobby}
+        onClose={() => setHobbySheetOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -102,46 +159,49 @@ export function DashboardScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 120 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm },
-  backBtn: {
-    borderWidth: 2,
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  screenTitle: { fontSize: 28, fontWeight: '900', color: colors.text, letterSpacing: 2 },
+  roadmapBtn: {
+    backgroundColor: colors.primary,
+    borderWidth: 4,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 5, height: 5 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 2,
+    elevation: 5,
   },
-  backBtnPressed: {
-    transform: [{ translateX: 2 }, { translateY: 2 }],
+  roadmapBtnPressed: {
+    transform: [{ translateX: 4 }, { translateY: 4 }],
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
   },
-  backBtnText: { fontSize: 13, fontWeight: '800', color: colors.text },
-  screenTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
+  roadmapBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.textInverse,
+    letterSpacing: 2,
+  },
   resetBtn: {
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.danger,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
     backgroundColor: colors.bgElevated,
     shadowColor: colors.danger,
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 3,
+    elevation: 4,
   },
   resetBtnPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
+    transform: [{ translateX: 4 }, { translateY: 4 }],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     elevation: 0,
   },
-  resetBtnText: { fontSize: 14, fontWeight: '800', color: colors.danger },
+  resetBtnText: { fontSize: 14, fontWeight: '900', color: colors.danger, letterSpacing: 1 },
 });

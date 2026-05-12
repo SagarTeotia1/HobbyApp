@@ -175,7 +175,7 @@ export const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: radius.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.mint,
   },
   progressDotEmpty: {
     backgroundColor: colors.surface,

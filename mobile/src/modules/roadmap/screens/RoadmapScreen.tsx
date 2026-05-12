@@ -11,9 +11,9 @@ import { RoadmapNode } from '../components/RoadmapNode/RoadmapNode';
 import { RoadmapHeroCard } from '../components/RoadmapHeroCard/RoadmapHeroCard';
 import { LevelUpBanner } from '../components/LevelUpBanner/LevelUpBanner';
 import { TopicActionSheet } from '../components/TopicActionSheet';
-import { ChangeHobbySheet } from '../components/ChangeHobbySheet';
+import { ChangeHobbySheet } from '../../../shared/components/ChangeHobbySheet';
 import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton/FloatingAIButton';
-import { CURRICULUM } from '../../../shared/constants/curriculum';
+import { CURRICULUM, getTopicById } from '../../../shared/constants/curriculum';
 import { colors, spacing } from '../../../app/theme';
 import { ROUTES } from '../../../app/navigation/routes';
 import type { AppStackParamList } from '../../../app/navigation/types';
@@ -155,6 +155,7 @@ export function RoadmapScreen() {
             topicName={stage.title}
             topicIndex={index}
             progress={getTopicProgress(hobbyId, stage.conceptId)}
+            fallbackTotalVideos={getTopicById(hobbyId, stage.conceptId)?.videos?.length ?? 5}
             isFirst={index === 0}
             isLast={index === stages.length - 1}
             isLocked={isTopicLocked(stage, index)}

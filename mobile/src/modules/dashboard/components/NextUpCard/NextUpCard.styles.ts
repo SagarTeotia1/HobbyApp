@@ -1,0 +1,71 @@
+import { StyleSheet } from 'react-native';
+import { colors, spacing, radius } from '../../../../app/theme';
+
+export const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.primaryLight,
+    borderWidth: 3,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 4, height: 4 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  badge: {
+    backgroundColor: colors.primary,
+    color: colors.textInverse,
+    fontSize: 10,
+    fontWeight: '900',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    overflow: 'hidden',
+    letterSpacing: 1,
+  },
+  topicIndex: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.text,
+    marginBottom: spacing.lg,
+    lineHeight: 26,
+  },
+  btn: {
+    backgroundColor: colors.yellow,
+    borderWidth: 3,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  btnPressed: {
+    transform: [{ translateX: 3 }, { translateY: 3 }],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  btnText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 1,
+  },
+});

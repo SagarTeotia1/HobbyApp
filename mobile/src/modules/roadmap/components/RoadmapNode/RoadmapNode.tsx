@@ -11,6 +11,7 @@ interface Props {
   topicName: string;
   topicIndex: number;
   progress: TopicProgress | undefined;
+  fallbackTotalVideos?: number;
   isFirst: boolean;
   isLast: boolean;
   isLocked: boolean;
@@ -21,14 +22,14 @@ interface Props {
 }
 
 export function RoadmapNode({
-  topicName, topicIndex, progress,
+  topicName, topicIndex, progress, fallbackTotalVideos,
   isFirst, isLast, isLocked,
   onPress, onLongPress, onDetail, onGraph,
 }: Props) {
   const isCompleted = progress?.completed ?? false;
   const isCurrent = !isCompleted && !isLocked;
   const watched = progress?.videosWatched ?? 0;
-  const total = progress?.totalVideos ?? 1;
+  const total = progress?.totalVideos ?? fallbackTotalVideos ?? 1;
 
   const fillAnim = useRef(new Animated.Value(isCompleted ? 1 : 0)).current;
 

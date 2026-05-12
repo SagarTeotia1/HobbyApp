@@ -25,22 +25,22 @@ export function StatsGrid({ stats }: Props) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   card: {
     flex: 1,
     minWidth: '45%',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.bgElevated,
     padding: spacing.md,
     alignItems: 'center',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 4, height: 4 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 3,
   },
-  value: { fontSize: 22, fontWeight: '900', color: colors.text },
-  label: { fontSize: 11, fontWeight: '700', color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
+  value: { fontSize: 26, fontWeight: '900', color: colors.text },
+  label: { fontSize: 11, fontWeight: '800', color: colors.textMuted, marginTop: 4, letterSpacing: 1, textTransform: 'uppercase' },
 });

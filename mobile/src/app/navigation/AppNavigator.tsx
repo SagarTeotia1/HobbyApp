@@ -14,7 +14,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={ROUTES.DASHBOARD}>
       <Stack.Screen name={ROUTES.ROADMAP} component={RoadmapScreen} />
       <Stack.Screen
         name={ROUTES.TOPIC_DETAIL}

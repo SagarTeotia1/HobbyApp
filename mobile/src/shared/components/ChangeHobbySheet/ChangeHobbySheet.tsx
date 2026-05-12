@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, Pressable, ScrollView, TextInput, ActivityIndicator } from 'react-native';
-import { CURRICULUM } from '../../../../shared/constants/curriculum';
-import { colors } from '../../../../app/theme';
+import { CURRICULUM } from '../../constants/curriculum';
+import { colors } from '../../../app/theme';
 import { styles } from './ChangeHobbySheet.styles';
 
 const FEATURED_IDS = ['chess', 'guitar', 'cooking', 'photography', 'yoga', 'web-dev'];

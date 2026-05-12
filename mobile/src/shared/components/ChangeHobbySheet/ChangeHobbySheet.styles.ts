@@ -1,7 +1,7 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../../../../app/theme';
-import { borders } from '../../../../app/theme/borders';
-import { shadows } from '../../../../app/theme/shadows';
+import { colors, spacing, radius } from '../../../app/theme';
+import { borders } from '../../../app/theme/borders';
+import { shadows } from '../../../app/theme/shadows';
 
 const SCREEN_W   = Dimensions.get('window').width;
 const SHEET_PAD  = spacing.lg * 2;   // paddingHorizontal on sheet

@@ -27,6 +27,9 @@ interface Props {
   onClose: () => void;
 }
 
+const THUMB_W = 120;
+const THUMB_H = 68;
+
 export function VideoListSheet({
   visible,
   videos,
@@ -96,6 +99,8 @@ export function VideoListSheet({
     [currentIndex, watchedIndices, onSelect, onClose],
   );
 
+  const ItemSeparator = useCallback(() => <View style={styles.separator} />, []);
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.container}>
@@ -103,39 +108,40 @@ export function VideoListSheet({
           <View style={styles.overlay} />
         </TouchableWithoutFeedback>
 
-      <SafeAreaView style={styles.sheet} edges={['bottom']}>
-        {/* Handle */}
-        <View style={styles.handle} />
+        <SafeAreaView style={styles.sheet} edges={['bottom']}>
+          {/* Handle */}
+          <View style={styles.handle} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Playlist</Text>
-            <Text style={styles.headerSub} numberOfLines={1}>{topicName}</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.headerTitle}>Playlist</Text>
+              <Text style={styles.headerSub} numberOfLines={1}>{topicName}</Text>
+            </View>
+            <Pressable
+              style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+              onPress={onClose}>
+              <Text style={styles.closeBtnText}>✕</Text>
+            </Pressable>
           </View>
-          <Pressable
-            style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
-            onPress={onClose}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </Pressable>
-        </View>
 
-        <FlashList
-          data={videos}
-          keyExtractor={(v) => v.id}
-          renderItem={renderItem}
-          estimatedItemSize={84}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      </SafeAreaView>
+          {/* FlashList needs a View with flex:1 to measure its own height inside maxHeight parent */}
+          <View style={styles.listContainer}>
+            <FlashList
+              data={videos}
+              keyExtractor={(v) => v.id}
+              renderItem={renderItem}
+              estimatedItemSize={84}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ItemSeparatorComponent={ItemSeparator}
+            />
+          </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );
 }
-
-const THUMB_W = 120;
-const THUMB_H = 68;
 
 const styles = StyleSheet.create({
   container: {
@@ -150,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     borderTopWidth: 3,
     borderTopColor: colors.border,
-    maxHeight: '75%',
+    height: '75%',
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
   },
@@ -196,10 +202,15 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   closeBtnText: { fontSize: 12, fontWeight: '900', color: colors.text },
-  list: { padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xl },
+  // flex:1 here is critical — gives FlashList a bounded height inside the maxHeight SafeAreaView
+  listContainer: {
+    flex: 1,
+  },
+  // Only padding + backgroundColor allowed in FlashList contentContainerStyle — NO gap
+  list: { padding: spacing.md, paddingBottom: spacing.xl },
+  separator: { height: spacing.sm },
   item: {
     flexDirection: 'row',
-    gap: spacing.md,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
@@ -229,6 +240,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: VIDEO_THUMB_BG,
+    marginRight: spacing.md,
   },
   thumb: { width: '100%', height: '100%' },
   thumbPlaceholder: {
@@ -277,9 +289,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playingText: { color: colors.text, fontSize: 8, fontWeight: '900' },
-  info: { flex: 1, justifyContent: 'center', gap: 3 },
-  title: { fontSize: 13, fontWeight: '800', color: colors.text, lineHeight: 18 },
+  info: {
+    flex: 1,
+    justifyContent: 'center',
+    // No `gap` here — use marginBottom on children for Android compatibility
+  },
+  title: { fontSize: 13, fontWeight: '800', color: colors.text, lineHeight: 18, marginBottom: 2 },
   titleCurrent: { color: colors.primary },
-  creator: { fontSize: 11, fontWeight: '600', color: colors.textMuted },
+  creator: { fontSize: 11, fontWeight: '600', color: colors.textMuted, marginBottom: 2 },
   duration: { fontSize: 10, fontWeight: '700', color: colors.textDim },
 });

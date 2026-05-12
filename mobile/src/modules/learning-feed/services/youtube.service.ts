@@ -21,7 +21,7 @@ export const youtubeService = {
     const data = await unwrap(
       apiClient.get<ApiEnvelope<YouTubeVideosData>>('/youtube/videos', {
         params,
-        timeout: 12_000,
+        timeout: 20_000, // server needs: AI query gen (3s) + YT search (10s) + embeddability check (10s)
       }),
     );
     return data.videos;

@@ -812,6 +812,7 @@ export const CURRICULUM: readonly CurriculumHobby[] = [
             title: 'How to Play Chess Episode 2: Fighting for the King',
             creator: 'Kids Academy',
             videoUrl: 'https://pub-ef0d64d4483442089d9334d9dc46aff9.r2.dev/hobbyapp/How%20to%20Play%20Chess%20Episode%202%20Fighting%20for%20the%20King%20Kids%20Academy%20-%20Kids%20Academy%20(1080p).mp4',
+            thumbnailUrl: 'https://img.youtube.com/vi/asb93vAinyM/hqdefault.jpg',
             keyInsight: 'Chess: 6 piece types, 64 squares. Control the center (e4, d4, e5, d5). Each piece has different movement — learn their values: pawn=1, knight/bishop=3, rook=5, queen=9.',
           },
           {
@@ -1554,7 +1555,10 @@ export function getHobbyById(id: string): CurriculumHobby | undefined {
 export function getTopicById(hobbyId: string, topicId: string): CurriculumTopic | undefined {
   const hobby = getHobbyById(hobbyId);
   const topic = hobby?.topics.find((t) => t.id === topicId);
-  return topic ? { ...topic, videos: SHARED_CLOUDFLARE_VIDEOS } : undefined;
+  if (!topic) return undefined;
+  // Use the topic's own curriculum videos; fall back to shared videos only when empty
+  const videos = topic.videos && topic.videos.length > 0 ? topic.videos : SHARED_CLOUDFLARE_VIDEOS;
+  return { ...topic, videos };
 }
 
 export function getTopicByIndex(hobbyId: string, index: number): CurriculumTopic | undefined {
@@ -1562,7 +1566,9 @@ export function getTopicByIndex(hobbyId: string, index: number): CurriculumTopic
   if (!hobby) return undefined;
   const clamped = Math.max(0, Math.min(index, hobby.topics.length - 1));
   const topic = hobby.topics[clamped];
-  return { ...topic, videos: SHARED_CLOUDFLARE_VIDEOS };
+  // Use the topic's own curriculum videos; fall back to shared videos only when empty
+  const videos = topic.videos && topic.videos.length > 0 ? topic.videos : SHARED_CLOUDFLARE_VIDEOS;
+  return { ...topic, videos };
 }
 
 export function getTotalTopics(hobbyId: string): number {

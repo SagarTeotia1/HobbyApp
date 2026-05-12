@@ -43,11 +43,11 @@ export const aiService = {
     history: Array<{ role: 'user' | 'assistant'; content: string }>,
   ): Promise<string> {
     return unwrap(
-      apiClient.post<ApiEnvelope<{ reply: string }>>('/ai/chat/sync', {
-        message,
-        hobbyId,
-        history,
-      }),
+      apiClient.post<ApiEnvelope<{ reply: string }>>(
+        '/ai/chat/sync',
+        { message, hobbyId, history },
+        { timeout: 60_000 },
+      ),
     ).then((data) => data.reply);
   },
 };

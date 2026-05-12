@@ -11,74 +11,124 @@ interface Props {
 export function FeedProgressStrip({ total, currentIndex, onOpenPlaylist }: Props) {
   return (
     <View style={styles.strip}>
-      <View style={styles.dotsRow}>
+      {/* Segmented bar */}
+      <View style={styles.barRow}>
         {Array.from({ length: total }, (_, i) => (
           <View
             key={i}
             style={[
-              styles.dot,
-              i === currentIndex && styles.dotActive,
-              i < currentIndex && styles.dotWatched,
+              styles.segment,
+              i < currentIndex  && styles.segmentDone,
+              i === currentIndex && styles.segmentActive,
             ]}
           />
         ))}
       </View>
-      <Pressable
-        style={({ pressed }) => [styles.playlistBtn, pressed && styles.playlistBtnPressed]}
-        onPress={onOpenPlaylist}>
-        <Text style={styles.playlistBtnText}>☰ {currentIndex + 1}/{total}</Text>
-      </Pressable>
+
+      {/* Counter + playlist button */}
+      <View style={styles.infoRow}>
+        <Text style={styles.counter}>
+          <Text style={styles.counterCurrent}>{currentIndex + 1}</Text>
+          <Text style={styles.counterSep}> / </Text>
+          <Text style={styles.counterTotal}>{total}</Text>
+          <Text style={styles.counterLabel}> VIDEOS</Text>
+        </Text>
+        <Pressable
+          style={({ pressed }) => [styles.listBtn, pressed && styles.listBtnPressed]}
+          onPress={onOpenPlaylist}>
+          <Text style={styles.listBtnIcon}>☰</Text>
+          <Text style={styles.listBtnText}>PLAYLIST</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   strip: {
+    backgroundColor: colors.bg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
+    gap: spacing.xs,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.borderLight,
+  },
+
+  // Segmented track
+  barRow: {
+    flexDirection: 'row',
+    gap: 3,
+    height: 5,
+  },
+  segment: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.borderLight,
+  },
+  segmentDone: {
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  segmentActive: {
+    backgroundColor: colors.primary,
+  },
+
+  // Counter row
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.bg,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.border,
   },
-  dotsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.border,
+  counter: {
+    fontSize: 11,
   },
-  dotActive: {
-    width: 22,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
+  counterCurrent: {
+    fontWeight: '900',
+    color: colors.primary,
+    fontSize: 13,
   },
-  dotWatched: {
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+  counterSep: {
+    fontWeight: '600',
+    color: colors.textDim,
   },
-  playlistBtn: {
+  counterTotal: {
+    fontWeight: '700',
+    color: colors.textMuted,
+  },
+  counterLabel: {
+    fontWeight: '700',
+    color: colors.textDim,
+    letterSpacing: 1,
+  },
+  listBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.bgElevated,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.bgElevated,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
     shadowColor: colors.shadow,
     shadowOffset: { width: 2, height: 2 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 2,
   },
-  playlistBtnPressed: {
+  listBtnPressed: {
     transform: [{ translateX: 2 }, { translateY: 2 }],
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
     elevation: 0,
   },
-  playlistBtnText: { fontSize: 12, fontWeight: '900', color: colors.text },
+  listBtnIcon: { fontSize: 11, color: colors.text },
+  listBtnText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 1,
+  },
 });

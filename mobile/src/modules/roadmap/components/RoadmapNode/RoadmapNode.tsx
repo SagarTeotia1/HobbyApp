@@ -132,10 +132,12 @@ export function RoadmapNode({
                         { width: `${Math.max(isCompleted ? 100 : pct, (watched > 0 || isCompleted) ? 4 : 0)}%` as `${number}%` },
                       ]} />
                     </View>
+                    {(watched > 0 || isCompleted) && (
                     <View style={styles.progressMeta}>
                       <Text style={styles.progressMetaText}>{watched}/{total} videos</Text>
-                      <Text style={styles.progressMetaText}>{isCompleted ? '100%' : `${pct}%`}</Text>
+                      {isCompleted && <Text style={styles.progressMetaText}>100%</Text>}
                     </View>
+                  )}
                   </View>
                 )}
               </View>

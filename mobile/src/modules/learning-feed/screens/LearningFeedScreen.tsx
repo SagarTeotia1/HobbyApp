@@ -66,15 +66,14 @@ export function LearningFeedScreen() {
     skillLevel,
   );
 
-  // Snapshot of watched indices for the sheet (ref changes don't trigger re-renders)
   const [sheetWatchedIndices, setSheetWatchedIndices] = useState<Set<number>>(new Set());
 
   const {
     currentIndex,
+    setCurrentIndex,
     xpDelta,
     sheetOpen,
     setSheetOpen,
-    setCurrentIndex,
     isLast,
     watchedSet,
     handleContinue,
@@ -88,8 +87,11 @@ export function LearningFeedScreen() {
   if (isLoading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loaderText}>Loading playlist...</Text>
+        <View style={styles.loaderCard}>
+          <ActivityIndicator size="large" color={colors.yellow} />
+          <Text style={styles.loaderTitle}>LOADING PLAYLIST</Text>
+          <Text style={styles.loaderText}>Fetching your videos…</Text>
+        </View>
       </View>
     );
   }
@@ -117,12 +119,6 @@ export function LearningFeedScreen() {
     <View style={styles.root}>
       <SafeAreaView style={styles.safeTop} edges={['top']}>
         <FeedHeader topicName={topicName} onBack={() => navigation.goBack()} />
-        <FeedXPBar
-          xpDelta={xpDelta}
-          streak={streak}
-          completedTopics={completedTopics}
-          totalTopics={totalTopics}
-        />
       </SafeAreaView>
 
       <View style={[styles.videoContainer, { height: VIDEO_HEIGHT }]}>
@@ -136,12 +132,19 @@ export function LearningFeedScreen() {
         total={videos.length}
         currentIndex={currentIndex}
         onOpenPlaylist={() => {
-          // Snapshot the current watched set so the modal shows up-to-date badges
           setSheetWatchedIndices(new Set(watchedSet.current));
           setSheetOpen(true);
         }}
       />
 
+      <FeedXPBar
+        xpDelta={xpDelta}
+        streak={streak}
+        completedTopics={completedTopics}
+        totalTopics={totalTopics}
+      />
+
+      {/* Cream zone: flashcard content */}
       <ScrollView
         style={styles.flashcardScroll}
         contentContainerStyle={{ paddingBottom: bottomBarHeight + 16 }}
@@ -186,15 +189,31 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   loader: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.videoBg,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
+    padding: spacing.xl,
   },
-  loaderText: { fontSize: 14, fontWeight: '700', color: colors.textMuted },
+  loaderCard: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.md,
+    width: '100%',
+  },
+  loaderTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textInverse,
+    letterSpacing: 2,
+  },
+  loaderText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
   safeTop: { backgroundColor: colors.bg },
   videoContainer: { width: '100%', backgroundColor: '#000' },
-  flashcardScroll: { flex: 1 },
+  flashcardScroll: { flex: 1, backgroundColor: colors.bg },
   emptyState: {
     flex: 1,
     alignItems: 'center',

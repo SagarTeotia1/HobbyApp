@@ -94,9 +94,11 @@ export const youtubeService = {
       return { videos: [], query, cachedAt: new Date().toISOString() };
     }
 
-    logger.info(`[youtube] ${searchItems.length} search → ${verified.length} embeddable`);
+    // Filter out Shorts (< 90s) — belt-and-suspenders after videoDuration=medium param
+    const horizontal = verified.filter((v) => parseDuration(v.contentDetails?.duration ?? 'PT0S') >= 90);
+    logger.info(`[youtube] ${searchItems.length} search → ${verified.length} embeddable → ${horizontal.length} horizontal`);
 
-    if (verified.length === 0) {
+    if (horizontal.length === 0) {
       return { videos: [], query, cachedAt: new Date().toISOString() };
     }
 
@@ -105,7 +107,7 @@ export const youtubeService = {
 
     let videos: YouTubeVideo[];
     try {
-      videos = verified.slice(0, MAX_VIDEOS).map((detail) => {
+      videos = horizontal.slice(0, MAX_VIDEOS).map((detail) => {
         const snippet = snippetMap.get(detail.id) ?? detail.snippet;
         return {
           id: `yt-${detail.id}`,

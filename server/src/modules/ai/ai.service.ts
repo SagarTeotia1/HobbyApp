@@ -245,19 +245,46 @@ export const aiService = {
       weakConceptTitles: input.weakConcepts,
     });
 
-    if (env.AI_PROVIDER === 'groq') {
-      return groqClient.generateText(systemPrompt, input.history, input.message);
-    }
-
-    let reply = '';
     const geminiHistory = input.history.map((m) => ({
       role: (m.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
       parts: [{ text: m.content }] as [{ text: string }],
     }));
-    for await (const chunk of geminiClient.streamText(systemPrompt, geminiHistory, input.message)) {
-      reply += chunk;
+
+    const runGemini = async (): Promise<string> => {
+      let reply = '';
+      for await (const chunk of geminiClient.streamText(systemPrompt, geminiHistory, input.message)) {
+        reply += chunk;
+      }
+      return reply || 'I had trouble generating a response. Please try again.';
+    };
+
+    if (env.AI_PROVIDER === 'groq') {
+      try {
+        const groqResult = await Promise.race([
+          groqClient.generateText(systemPrompt, input.history, input.message),
+          new Promise<string>((_, reject) =>
+            setTimeout(() => reject(new Error('groq timeout after 8s')), 8_000),
+          ),
+        ]);
+        if (groqResult) return groqResult;
+        throw new Error('empty groq response');
+      } catch (err) {
+        console.warn('[chatReply] Groq failed, falling back to Gemini:', err instanceof Error ? err.message : err);
+      }
     }
-    return reply;
+
+    try {
+      const geminiResult = await Promise.race([
+        runGemini(),
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error('gemini timeout after 25s')), 25_000),
+        ),
+      ]);
+      return geminiResult;
+    } catch (err) {
+      console.warn('[chatReply] Gemini fallback also failed:', err instanceof Error ? err.message : err);
+      return 'Both AI providers are currently unavailable. Please try again in a moment.';
+    }
   },
 
   async chatAction(

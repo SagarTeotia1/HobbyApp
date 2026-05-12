@@ -44,6 +44,7 @@ export async function searchYouTube(
   url.searchParams.set('q', query);
   url.searchParams.set('type', 'video');
   url.searchParams.set('videoEmbeddable', 'true');
+  url.searchParams.set('videoDuration', 'medium'); // 4–20 min, excludes Shorts
   url.searchParams.set('maxResults', String(maxResults));
   url.searchParams.set('key', apiKey);
   url.searchParams.set('relevanceLanguage', 'en');

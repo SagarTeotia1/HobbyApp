@@ -13,11 +13,14 @@ export function FeedHeader({ topicName, onBack }: Props) {
       <Pressable
         style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
         onPress={onBack}>
-        <Text style={styles.backBtnText}>← Back</Text>
+        <Text style={styles.backBtnText}>←</Text>
       </Pressable>
+
       <View style={styles.topicPill}>
-        <Text style={styles.topicPillText} numberOfLines={1}>{topicName}</Text>
+        <View style={styles.topicDot} />
+        <Text style={styles.topicPillText} numberOfLines={1}>{topicName.toUpperCase()}</Text>
       </View>
+
     </View>
   );
 }
@@ -26,17 +29,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    backgroundColor: colors.bg,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.border,
   },
   backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgElevated,
     borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 2, height: 2 },
     shadowRadius: 0,
@@ -46,18 +54,34 @@ const styles = StyleSheet.create({
   backBtnPressed: {
     transform: [{ translateX: 2 }, { translateY: 2 }],
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
     elevation: 0,
   },
-  backBtnText: { fontSize: 13, fontWeight: '800', color: colors.text },
+  backBtnText: { fontSize: 16, fontWeight: '900', color: colors.text },
+
   topicPill: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.primary,
   },
-  topicPillText: { fontSize: 12, fontWeight: '800', color: colors.textInverse },
+  topicDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.yellow,
+  },
+  topicPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textInverse,
+    letterSpacing: 0.8,
+    flex: 1,
+  },
+
 });

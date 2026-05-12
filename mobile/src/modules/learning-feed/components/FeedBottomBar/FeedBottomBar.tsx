@@ -15,14 +15,20 @@ export function FeedBottomBar({ isLast, paddingBottom, onBreak, onContinue }: Pr
       <Pressable
         style={({ pressed }) => [styles.breakBtn, pressed && styles.breakBtnPressed]}
         onPress={onBreak}>
-        <Text style={styles.breakBtnText}>☕ Need Break</Text>
+        <Text style={styles.breakIcon}>☕</Text>
+        <Text style={styles.breakBtnText}>BREAK</Text>
       </Pressable>
+
       <Pressable
-        style={({ pressed }) => [styles.continueBtn, pressed && styles.continueBtnPressed]}
+        style={({ pressed }) => [styles.continueWrap, pressed && styles.continueWrapPressed]}
         onPress={onContinue}>
-        <Text style={styles.continueBtnText}>
-          {isLast ? 'Next Topic →' : '▶ Next Video'}
-        </Text>
+        <View style={styles.continueShadow} />
+        <View style={[styles.continueFace]}>
+          <Text style={styles.continueBtnText}>
+            {isLast ? 'NEXT TOPIC' : 'NEXT VIDEO'}
+          </Text>
+          <Text style={styles.continueArrow}>{isLast ? '→→' : '▶'}</Text>
+        </View>
       </Pressable>
     </View>
   );
@@ -39,22 +45,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     backgroundColor: colors.bg,
-    borderTopWidth: 2,
+    borderTopWidth: 3,
     borderTopColor: colors.border,
-  },
-  breakBtn: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.bgElevated,
-    paddingVertical: spacing.md,
     alignItems: 'center',
+  },
+
+  breakBtn: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    borderWidth: 2.5,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.bgElevated,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     shadowColor: colors.shadow,
     shadowOffset: { width: 3, height: 3 },
     shadowRadius: 0,
     shadowOpacity: 1,
     elevation: 3,
+    minWidth: 64,
   },
   breakBtnPressed: {
     transform: [{ translateX: 3 }, { translateY: 3 }],
@@ -62,26 +74,49 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
-  breakBtnText: { fontSize: 13, fontWeight: '800', color: colors.textMuted },
-  continueBtn: {
-    flex: 2,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
+  breakIcon: { fontSize: 16 },
+  breakBtnText: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
+
+  continueWrap: {
+    flex: 1,
+    position: 'relative',
+  },
+  continueWrapPressed: {},
+  continueShadow: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    right: -4,
+    bottom: -4,
+    backgroundColor: colors.border,
+    borderRadius: radius.lg,
+  },
+  continueFace: {
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 3, height: 3 },
-    shadowRadius: 0,
-    shadowOpacity: 1,
-    elevation: 3,
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    borderWidth: 2.5,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    zIndex: 1,
   },
-  continueBtnPressed: {
-    transform: [{ translateX: 3 }, { translateY: 3 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    elevation: 0,
+  continueBtnText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: colors.textInverse,
+    letterSpacing: 1.5,
   },
-  continueBtnText: { fontSize: 13, fontWeight: '900', color: colors.textInverse },
+  continueArrow: {
+    fontSize: 14,
+    color: colors.yellow,
+    fontWeight: '900',
+  },
 });

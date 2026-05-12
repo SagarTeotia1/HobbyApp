@@ -84,10 +84,10 @@ export function useFeedSession({
 
   return {
     currentIndex,
+    setCurrentIndex,
     xpDelta,
     sheetOpen,
     setSheetOpen,
-    setCurrentIndex,
     isLast,
     watchedSet,
     handleContinue,

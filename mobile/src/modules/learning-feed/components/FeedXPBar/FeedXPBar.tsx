@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.bgElevated,
     borderBottomWidth: 2,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
     gap: spacing.xs,
   },
   row: {

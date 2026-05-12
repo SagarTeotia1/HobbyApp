@@ -5,8 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../../app/store/rootStore';
 import { useRoadmapStore } from '../store/roadmap.store';
+import { FLOATING_TAB_HEIGHT } from '../../../shared/components/ui/FloatingTabBar/FloatingTabBar';
 import { useRoadmap } from '../hooks/useRoadmap';
 import { roadmapService } from '../services/roadmap.service';
 import { RoadmapNode } from '../components/RoadmapNode/RoadmapNode';
@@ -34,6 +36,7 @@ type Nav = CompositeNavigationProp<
 
 export function RoadmapScreen() {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const hobbyId = useUserStore((s) => s.currentHobbyId) ?? '';
   const xp = useUserStore((s) => s.xp);
   const level = useUserStore((s) => s.level);
@@ -185,7 +188,7 @@ export function RoadmapScreen() {
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
 
-      <FloatingAIButton hobbyId={hobbyId} context="roadmap" />
+      <FloatingAIButton hobbyId={hobbyId} context="roadmap" bottomOffset={FLOATING_TAB_HEIGHT + insets.bottom} />
 
       <TopicActionSheet
         visible={actionSheet !== null}

@@ -9,7 +9,6 @@ import { FloatingAIButton } from '../../../shared/components/ai/FloatingAIButton
 import { DashboardHeroCard } from '../components/DashboardHeroCard/DashboardHeroCard';
 import { StatsGrid } from '../components/StatsGrid/StatsGrid';
 import { NextUpCard } from '../components/NextUpCard/NextUpCard';
-import { RoadmapPreview } from '../components/RoadmapPreview/RoadmapPreview';
 import { ResetConfirmModal } from '../components/ResetConfirmModal/ResetConfirmModal';
 import { ChangeHobbySheet } from '../../../shared/components/ChangeHobbySheet';
 import { useUserStore } from '../../../app/store/rootStore';
@@ -42,8 +41,13 @@ export function DashboardScreen() {
   const setHobby         = useUserStore((s) => s.setHobby);
   const resetUser        = useUserStore((s) => s.reset);
 
-  const getTopicProgress = useRoadmapStore((s) => s.getTopicProgress);
+  const roadmapProgress  = useRoadmapStore((s) => s.progress);
   const resetRoadmap     = useRoadmapStore((s) => s.reset);
+
+  const getTopicProgress = useCallback(
+    (hId: string, tId: string) => roadmapProgress[hId]?.topicsProgress[tId],
+    [roadmapProgress],
+  );
 
   const { roadmap, invalidate } = useRoadmap(hobbyId ?? '');
   const stages = roadmap?.stages ?? [];
@@ -138,7 +142,8 @@ export function DashboardScreen() {
           </Pressable>
         </View>
 
-        {/* ── Hero card ── */}
+        {/* ── Hero card — full-bleed, no top border/radius ── */}
+        <View style={styles.heroBleed}>
         <DashboardHeroCard
           emoji={hobby?.emoji ?? '🎯'}
           name={hobby?.name ?? hobbyId}
@@ -154,14 +159,11 @@ export function DashboardScreen() {
           videosWatched={totalVideosWatched}
           totalVideos={totalVideosExpected}
         />
+        </View>
 
         {/* ── Continue Learning ── */}
         {nextTopic && (
           <>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionDot} />
-              <Text style={styles.sectionTitle}>CONTINUE LEARNING</Text>
-            </View>
             <NextUpCard
               hobbyId={hobbyId}
               hobbyName={hobby?.name ?? hobbyId}
@@ -169,13 +171,20 @@ export function DashboardScreen() {
               topicName={nextTopic.title}
               topicIndex={nextTopicIndex}
               skillLevel={skillLevel}
+              stages={stages}
+              getTopicProgress={getTopicProgress}
               onPress={() => navigation.navigate(ROUTES.FEED, {
                 hobbyId,
                 topicId: nextTopic.conceptId,
                 topicName: nextTopic.title,
                 stageIndex: nextTopicIndex,
               })}
-              onRoadmap={() => navigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.ROADMAP })}
+              onTopicPress={(stage, index) => navigation.navigate(ROUTES.FEED, {
+                hobbyId,
+                topicId: stage.conceptId,
+                topicName: stage.title,
+                stageIndex: index,
+              })}
               onLearnGraph={() => navigation.navigate(ROUTES.LEARN_GRAPH, {
                 hobbyId,
                 topicId: nextTopic.conceptId,
@@ -198,23 +207,6 @@ export function DashboardScreen() {
           </>
         )}
 
-        {/* ── Roadmap Preview ── */}
-        <View style={styles.sectionHeader}>
-          <View style={[styles.sectionDot, { backgroundColor: '#F4B183' }]} />
-          <Text style={styles.sectionTitle}>YOUR PATH</Text>
-        </View>
-        <RoadmapPreview
-          stages={stages}
-          hobbyId={hobbyId}
-          getTopicProgress={getTopicProgress}
-          onViewFull={() => navigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.ROADMAP })}
-          onTopicPress={(stage, index) => navigation.navigate(ROUTES.FEED, {
-            hobbyId,
-            topicId: stage.conceptId,
-            topicName: stage.title,
-            stageIndex: index,
-          })}
-        />
 
         {/* ── Stats ── */}
         <View style={styles.sectionHeader}>
@@ -264,6 +256,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
     gap: spacing.md,
+  },
+  heroBleed: {
+    marginHorizontal: -spacing.lg,
   },
 
   // ── Header ──────────────────────────────────────────────────

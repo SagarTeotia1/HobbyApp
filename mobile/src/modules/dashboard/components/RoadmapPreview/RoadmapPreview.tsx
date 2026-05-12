@@ -137,18 +137,6 @@ export function RoadmapPreview({ stages, hobbyId, getTopicProgress, onViewFull, 
         )}
       </ScrollView>
 
-      {/* Overall progress bar */}
-      <View style={styles.footer}>
-        <View style={styles.footerBar}>
-          <View style={[
-            styles.footerBarFill,
-            { width: `${Math.round((Math.max(0, activeIdx) / stages.length) * 100)}%` as `${number}%` },
-          ]} />
-        </View>
-        <Text style={styles.footerLabel}>
-          {Math.round((Math.max(0, currentIndex === -1 ? stages.length : activeIdx) / stages.length) * 100)}% complete
-        </Text>
-      </View>
     </View>
   );
 }
@@ -342,33 +330,4 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 
-  // Footer progress
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderTopWidth: 2,
-    borderTopColor: colors.borderLight,
-    backgroundColor: colors.surface,
-  },
-  footerBar: {
-    flex: 1,
-    height: 8,
-    backgroundColor: colors.borderLight,
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-  },
-  footerBarFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: radius.pill,
-  },
-  footerLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: colors.textMuted,
-    letterSpacing: 0.5,
-  },
 });

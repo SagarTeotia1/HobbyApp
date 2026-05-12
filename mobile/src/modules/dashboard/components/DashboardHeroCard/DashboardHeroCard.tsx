@@ -133,15 +133,19 @@ export function DashboardHeroCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 3,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 3,
     borderColor: colors.border,
-    borderRadius: radius.xl,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
     overflow: 'hidden',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 6, height: 6 },
+    shadowOffset: { width: 0, height: 5 },
     shadowRadius: 0,
     shadowOpacity: 1,
-    elevation: 6,
+    elevation: 5,
   },
 
   // ── Poster top ────────────────────────────────────────────────
